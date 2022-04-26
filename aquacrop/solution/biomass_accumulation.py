@@ -66,12 +66,12 @@ def biomass_accumulation(
         # Get time for harvest index build-up
         HIt = NewCond_DAP - NewCond_DelayedCDs - Crop.HIstartCD - 1
 
-        if ((Crop.CropType == 2) or (Crop.CropType == 3)) and (NewCond_HIref > 0):
+        if ((Crop.CropType == 2) or (Crop.CropType == 3)) and (round(NewCond_HIref,4) > 0):
             # Adjust WP for reproductive stage
             if Crop.Determinant == 1:
                 fswitch = NewCond_PctLagPhase / 100
             else:
-                if HIt < (Crop.YldFormCD / 3):
+                if round(HIt,4) < round((Crop.YldFormCD / 3),4):
                     fswitch = HIt / (Crop.YldFormCD / 3)
                 else:
                     fswitch = 1

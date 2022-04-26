@@ -64,7 +64,7 @@ def water_stress(
             p_lo[ii] = p_lo[ii] + (0.04 * (5 - et0)) * (np.log10(10 - 9 * p_lo[ii]))
 
     # Adjust senescence threshold if early sensescence is triggered
-    if (beta == True) and (InitCond_tEarlySen > 0):
+    if (beta == True) and (round(InitCond_tEarlySen,2) > 0):
         p_up[2] = p_up[2] * (1 - Crop_beta / 100)
 
     # Limit values

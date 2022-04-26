@@ -72,7 +72,7 @@ def HIref_current_day(
         # Get time for harvest index calculation
         HIt = NewCond_DAP - NewCond_DelayedCDs - Crop.HIstartCD - 1
 
-        if HIt <= 0:
+        if round(HIt,2) <= 0:
             # Yet to reach time for harvest_index build-up
             NewCond_HIref = 0
             NewCond_PctLagPhase = 0

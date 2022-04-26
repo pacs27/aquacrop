@@ -128,7 +128,7 @@ def soil_evaporation(
     # Only do this if it is first day of simulation, or if it is first day of
     # growing season and not simulating off-season
     if (ClockStruct_TimeStepCounter == 0) or (
-        (NewCond_DAP == 1) and (ClockStruct_SimOffSeason == False)
+        (round(NewCond_DAP == 1,2)) and (ClockStruct_SimOffSeason == False)
     ):
         # Reset storage in surface soil layer to zero
         NewCond_Wsurf = 0
@@ -145,7 +145,7 @@ def soil_evaporation(
         NewCond_Wstage2 = round(
             (Wevap_Act - (Wevap_Fc - Soil_REW)) / (Wevap_Sat - (Wevap_Fc - Soil_REW)), 2
         )
-        if NewCond_Wstage2 < 0:
+        if round(NewCond_Wstage2,2) < 0:
             NewCond_Wstage2 = 0
 
     ## Prepare soil evaporation stage 1 ##
@@ -181,7 +181,7 @@ def soil_evaporation(
         EsPot = Soil_Kex * (1 - NewCond_CCadj) * et0
 
         # Adjust potential soil evaporation for effects of withered canopy
-        if (tAdj > Crop_Senescence) and (NewCond_CCxAct > 0):
+        if (tAdj > Crop_Senescence) and (round(NewCond_CCxAct,2) > 0):
             if NewCond_CC > (NewCond_CCxAct / 2):
                 if NewCond_CC > NewCond_CCxAct:
                     mult = 0
@@ -196,7 +196,7 @@ def soil_evaporation(
                 (1.72 * NewCond_CCxAct) - (NewCond_CCxAct ** 2) + 0.3 * (NewCond_CCxAct ** 3)
             )
             EsPotMin = Soil_Kex * (1 - CCxActAdj) * et0
-            if EsPotMin < 0:
+            if round(EsPotMin,2) < 0:
                 EsPotMin = 0
 
             if EsPot < EsPotMin:
@@ -250,7 +250,7 @@ def soil_evaporation(
     # Initialise actual evaporation counter
     EsAct = 0
     # Evaporate surface storage
-    if NewCond_SurfaceStorage > 0:
+    if round(NewCond_SurfaceStorage,2) > 0:
         if NewCond_SurfaceStorage > EsPot:
             # All potential soil evaporation can be supplied by surface storage
             EsAct = EsPot
@@ -274,7 +274,7 @@ def soil_evaporation(
     # layer water storage)
     ExtractPotStg1 = min(ToExtract, NewCond_Wsurf)
     # Extract water
-    if ExtractPotStg1 > 0:
+    if round(ExtractPotStg1,2) > 0:
         # Find soil compartments covered by evaporation layer
         comp_sto = np.sum(prof.dzsum < Soil_EvapZmin) + 1
         comp = -1
@@ -295,7 +295,7 @@ def soil_evaporation(
             W = 1000 * NewCond_th[comp] * prof.dz[comp]
             # Water available in compartment for extraction (mm)
             AvW = (W - Wdry) * factor
-            if AvW < 0:
+            if round(AvW,2) < 0:
                 AvW = 0
 
             if AvW >= ExtractPotStg1:
@@ -322,11 +322,11 @@ def soil_evaporation(
 
         # Update surface evaporation layer water balance
         NewCond_Wsurf = NewCond_Wsurf - EsAct
-        if (NewCond_Wsurf < 0) or (ExtractPotStg1 > 0.0001):
+        if (round(NewCond_Wsurf,2) < 0) or (round(ExtractPotStg1,2) >= 0):
             NewCond_Wsurf = 0
 
         # If surface storage completely depleted, prepare stage 2
-        if NewCond_Wsurf < 0.0001:
+        if round(NewCond_Wsurf,2) <= 0:
             # Get water contents (mm)
             Wevap_Sat, Wevap_Fc, Wevap_Wp, Wevap_Dry, Wevap_Act = evap_layer_water_content(
                 NewCond_th,
@@ -337,7 +337,7 @@ def soil_evaporation(
             NewCond_Wstage2 = round(
                 (Wevap_Act - (Wevap_Fc - Soil_REW)) / (Wevap_Sat - (Wevap_Fc - Soil_REW)), 2
             )
-            if NewCond_Wstage2 < 0:
+            if round(NewCond_Wstage2,2) < 0:
                 NewCond_Wstage2 = 0
 
     ## stage 2 evaporation ##
@@ -387,7 +387,7 @@ def soil_evaporation(
 
             # Get stage 2 evaporation reduction coefficient
             Kr = (np.exp(Soil_fevap * Wrel) - 1) / (np.exp(Soil_fevap) - 1)
-            if Kr > 1:
+            if round(Kr,2) > 1:
                 Kr = 1
 
             # Get water to extract (mm)
@@ -397,7 +397,7 @@ def soil_evaporation(
             comp_sto = np.sum(prof.dzsum < NewCond_EvapZ) + 1
             comp = -1
             # prof = Soil_Profile
-            while (ToExtractStg2 > 0) and (comp < comp_sto):
+            while (round(ToExtractStg2,2) > 0) and (comp < comp_sto):
                 # Increment compartment counter
                 comp = comp + 1
                 # Specify layer number

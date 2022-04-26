@@ -48,17 +48,17 @@ def cc_development(CCo, CCx, CGC, CDC, dt, Mode, CCx0):
         # Calculate canopy growth
         # Exponential growth stage
         canopy_cover = CCo * np.exp(CGC * dt)
-        if canopy_cover > (CCx / 2):
+        if round(canopy_cover,4) > round((CCx / 2),4):
             # Exponential decay stage
             canopy_cover = CCx - 0.25 * (CCx / CCo) * CCx * np.exp(-CGC * dt)
 
         # Limit canopy_cover to CCx
-        if canopy_cover > CCx:
+        if round(canopy_cover,4) > round(CCx,4):
             canopy_cover = CCx
 
     elif Mode == "Decline":
         # Calculate canopy decline
-        if CCx < 0.001:
+        if round(CCx,3) < 0.001:
             canopy_cover = 0
         else:
             canopy_cover = CCx * (
@@ -68,9 +68,9 @@ def cc_development(CCo, CCx, CGC, CDC, dt, Mode, CCx0):
             )
 
     ## Limit canopy cover to between 0 and 1 ##
-    if canopy_cover > 1:
+    if round(canopy_cover,4) > 1:
         canopy_cover = 1
-    elif canopy_cover < 0:
+    elif round(canopy_cover,4) < 0:
         canopy_cover = 0
 
     return canopy_cover

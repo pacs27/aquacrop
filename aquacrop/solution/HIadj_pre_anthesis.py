@@ -42,7 +42,7 @@ def HIadj_pre_anthesis(
     # NewCond = InitCond
 
     # check that there is an adjustment to be made
-    if Crop_dHI_pre > 0:
+    if round(Crop_dHI_pre,2) > 0:
         ## Calculate adjustment ##
         # Get parameters
         Br = NewCond_B / NewCond_B_NS
@@ -69,7 +69,7 @@ def HIadj_pre_anthesis(
     else:
         NewCond_Fpre = 1
 
-    if NewCond_CC <= 0.01:
+    if round(NewCond_CC,3) <= 0.01:
         # No green canopy cover left at start of flowering so no harvestable
         # crop will develop
         NewCond_Fpre = 0

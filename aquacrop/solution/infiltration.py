@@ -99,10 +99,10 @@ def infiltration(
     ## Determine surface storage (if bunds are present) ##
     if FieldMngt_Bunds:
         # bunds on field
-        if FieldMngt_zBund > 0.001:
+        if round(FieldMngt_zBund,3) > 0.001:
             # Bund height too small to be considered
             InflTot = Infl + NewCond_SurfaceStorage
-            if InflTot > 0:
+            if round(InflTot,2) > 0:
                 # Update surface storage and infiltration storage
                 if InflTot > prof.Ksat[0]:
                     # Infiltration limited by saturated hydraulic conductivity
@@ -154,7 +154,7 @@ def infiltration(
     ii = -1
     Runoff = 0
     ## Infiltrate incoming water ##
-    if ToStore > 0:
+    if round(ToStore,2) > 0:
         while (ToStore > 0) and (ii < Soil_nComp - 1):
             # Update compartment counter
             ii = ii + 1
@@ -171,7 +171,7 @@ def infiltration(
             # Check drainage ability
             if dthdt0 < dthdtS:
                 # Calculate water content, thX, needed to meet drainage dthdt0
-                if dthdt0 <= 0:
+                if round(dthdt0,2)<= 0:
                     theta0 = InitCond_th_fc_Adj[ii]
                 else:
                     A = 1 + (
@@ -204,7 +204,7 @@ def infiltration(
             # Calculate difference between threshold and current water contents
             diff = theta0 - InitCond_th[ii]
 
-            if diff > 0:
+            if round(diff,2) > 0:
                 # Increase water content of compartment ii
                 thnew[ii] = thnew[ii] + (ToStore / (1000 * prof.dz[ii]))
                 if thnew[ii] > theta0:
@@ -221,14 +221,14 @@ def infiltration(
 
             # Calculate back-up of water into compartments above
             excess = ToStore - drainmax
-            if excess < 0:
+            if round(excess,2) < 0:
                 excess = 0
 
             # Update water to store
             ToStore = ToStore - excess
 
             # Redistribute excess to compartments above
-            if excess > 0:
+            if round(excess,2) > 0:
                 precomp = ii + 1
                 while (excess > 0) and (precomp != 0):
                     # Keep storing in compartments above until soil surface is
@@ -251,7 +251,7 @@ def infiltration(
                         # All excess stored
                         excess = 0
 
-                if excess > 0:
+                if round(excess ,2)> 0:
                     # Any leftover water not stored becomes runoff
                     Runoff = Runoff + excess
 
@@ -269,7 +269,7 @@ def infiltration(
     ## Update surface storage (if bunds are present) ##
     if Runoff > RunoffIni:
         if FieldMngt_Bunds:
-            if FieldMngt_zBund > 0.001:
+            if round( FieldMngt_zBund,3) > 0.001:
                 # Increase surface storage
                 NewCond_SurfaceStorage = NewCond_SurfaceStorage + (Runoff - RunoffIni)
                 # Limit surface storage to bund height

@@ -48,12 +48,12 @@ def capillary_rise(prof, Soil_nLayer, Soil_fshape_cr, NewCond, FluxOut, water_ta
         zBot = prof.dzsum[-1]
         zBotMid = prof.zMid[-1]
         prof = prof
-        if (prof.Ksat[-1] > 0) and (z_gw > 0) and ((z_gw - zBotMid) < 4):
-            if zBotMid >= z_gw:
+        if (round(prof.Ksat[-1],4) > 0) and (round(z_gw,4) > 0) and (round((z_gw - zBotMid),4) < 4):
+            if round(zBotMid,4) >= round(z_gw,4):
                 MaxCR = 99
             else:
                 MaxCR = np.exp((np.log(z_gw - zBotMid) - prof.bCR[-1]) / prof.aCR[-1])
-                if MaxCR > 99:
+                if round(MaxCR,4) > 99:
                     MaxCR = 99
 
         else:
@@ -108,7 +108,7 @@ def capillary_rise(prof, Soil_nLayer, Soil_fshape_cr, NewCond, FluxOut, water_ta
             # drainage/infiltration has already occurred on current day
             # Find layer of current compartment
             # Calculate driving force
-            if (NewCond.th[compi] >= prof.th_wp[compi]) and (Soil_fshape_cr > 0):
+            if (round(NewCond.th[compi],4) >= round(prof.th_wp[compi],4)) and (round(Soil_fshape_cr,4) > 0):
                 Df = 1 - (
                     (
                         (NewCond.th[compi] - prof.th_wp[compi])
@@ -116,9 +116,9 @@ def capillary_rise(prof, Soil_nLayer, Soil_fshape_cr, NewCond, FluxOut, water_ta
                     )
                     ** Soil_fshape_cr
                 )
-                if Df > 1:
+                if round(Df,4) > 1:
                     Df = 1
-                elif Df < 0:
+                elif round(Df,4) < 0:
                     Df = 0
 
             else:
@@ -126,8 +126,8 @@ def capillary_rise(prof, Soil_nLayer, Soil_fshape_cr, NewCond, FluxOut, water_ta
 
             # Calculate relative hydraulic conductivity
             thThr = (prof.th_wp[compi] + prof.th_fc[compi]) / 2
-            if NewCond.th[compi] < thThr:
-                if (NewCond.th[compi] <= prof.th_wp[compi]) or (thThr <= prof.th_wp[compi]):
+            if round(NewCond.th[compi],4) < round(thThr,4):
+                if (round(NewCond.th[compi],4) <= round(prof.th_wp[compi],4)) or (round(thThr,4) <= round(prof.th_wp[compi],4)):
                     Krel = 0
                 else:
                     Krel = (NewCond.th[compi] - prof.th_wp[compi]) / (thThr - prof.th_wp[compi])
@@ -139,9 +139,9 @@ def capillary_rise(prof, Soil_nLayer, Soil_fshape_cr, NewCond, FluxOut, water_ta
             dth = NewCond.th_fc_Adj[compi] - NewCond.th[compi]
 
             # Store water if room is available
-            if (dth > 0) and ((zBot - prof.dz[compi] / 2) < z_gw):
+            if (round(dth,4) > 0) and (round((zBot - prof.dz[compi] / 2),4) < round(z_gw,4)):
                 dthMax = Krel * Df * MaxCR / (1000 * prof.dz[compi])
-                if dth >= dthMax:
+                if round(dth,4) >= round(dthMax,4):
                     NewCond.th[compi] = NewCond.th[compi] + dthMax
                     CRcomp = dthMax * 1000 * prof.dz[compi]
                     MaxCR = 0
@@ -157,21 +157,21 @@ def capillary_rise(prof, Soil_nLayer, Soil_fshape_cr, NewCond, FluxOut, water_ta
             # Update compartment and layer counters
             compi = compi - 1
             # Update restriction on maximum capillary rise
-            if compi > -1:
+            if round(compi,4) > -1:
 
                 zBotMid = zBot - (prof.dz[compi] / 2)
-                if (prof.Ksat[compi] > 0) and (z_gw > 0) and ((z_gw - zBotMid) < 4):
-                    if zBotMid >= z_gw:
+                if (round(prof.Ksat[compi],4) > 0) and (round(z_gw,4) > 0) and (round((z_gw - zBotMid),4) < 4):
+                    if round(zBotMid,4) >= round(z_gw,4):
                         LimCR = 99
                     else:
                         LimCR = np.exp((np.log(z_gw - zBotMid) - prof.bCR[compi]) / prof.aCR[compi])
-                        if LimCR > 99:
+                        if round(LimCR,2) > 99:
                             LimCR = 99
 
                 else:
                     LimCR = 0
 
-                if MaxCR > LimCR:
+                if round(MaxCR,4) > round(LimCR,4):
                     MaxCR = LimCR
 
         # Store total depth of capillary rise

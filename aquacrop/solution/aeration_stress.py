@@ -42,9 +42,9 @@ def aeration_stress(NewCond_AerDays, Crop_LagAer, thRZ):
     """
 
     ## Determine aeration stress (root zone) ##
-    if thRZ.Act > thRZ.Aer:
+    if round(thRZ.Act,4) > round(thRZ.Aer,4):
         # Calculate aeration stress coefficient
-        if NewCond_AerDays < Crop_LagAer:
+        if round(NewCond_AerDays,4) < round(Crop_LagAer,4):
             stress = 1 - ((thRZ.S - thRZ.Act) / (thRZ.S - thRZ.Aer))
             Ksa_Aer = 1 - ((NewCond_AerDays / 3) * stress)
         elif NewCond_AerDays >= Crop_LagAer:
@@ -52,7 +52,7 @@ def aeration_stress(NewCond_AerDays, Crop_LagAer, thRZ):
 
         # Increment aeration days counter
         NewCond_AerDays = NewCond_AerDays + 1
-        if NewCond_AerDays > Crop_LagAer:
+        if round(NewCond_AerDays,4) > round(Crop_LagAer,4):
             NewCond_AerDays = Crop_LagAer
 
     else:

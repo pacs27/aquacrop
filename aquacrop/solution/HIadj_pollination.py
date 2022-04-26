@@ -60,40 +60,40 @@ def HIadj_pollination(
 
     ## Caclulate harvest index adjustment for pollination ##
     # Get fractional flowering
-    if HIt == 0:
+    if round(HIt,2) == 0:
         # No flowering yet
         FracFlow = 0
-    elif HIt > 0:
+    elif round(HIt,2) > 0:
         # Fractional flowering on previous day
         t1 = HIt - 1
-        if t1 == 0:
+        if round(t1,2) == 0:
             F1 = 0
         else:
             t1Pct = 100 * (t1 / Crop_FloweringCD)
-            if t1Pct > 100:
+            if round(t1Pct,2) > 100:
                 t1Pct = 100
 
             F1 = 0.00558 * np.exp(0.63 * np.log(t1Pct)) - (0.000969 * t1Pct) - 0.00383
 
-        if F1 < 0:
+        if round(F1,2) < 0:
             F1 = 0
 
         # Fractional flowering on current day
         t2 = HIt
-        if t2 == 0:
+        if round(t2,2) == 0:
             F2 = 0
         else:
             t2Pct = 100 * (t2 / Crop_FloweringCD)
-            if t2Pct > 100:
+            if round(t2Pct,2) > 100:
                 t2Pct = 100
 
             F2 = 0.00558 * np.exp(0.63 * np.log(t2Pct)) - (0.000969 * t2Pct) - 0.00383
 
-        if F2 < 0:
+        if round(F2 ,2)< 0:
             F2 = 0
 
         # Weight values
-        if abs(F1 - F2) < 0.0000001:
+        if round(abs(F1 - F2),2) <= 0:
             F = 0
         else:
             F = 100 * ((F1 + F2) / 2) / Crop_FloweringCD
@@ -111,7 +111,7 @@ def HIadj_pollination(
 
     # Calculate pollination adjustment to date
     NewCond_Fpol = NewCond_Fpol + dFpol
-    if NewCond_Fpol > 1:
+    if round(NewCond_Fpol,2) > 1:
         # Crop has fully pollinated
         NewCond_Fpol = 1
 

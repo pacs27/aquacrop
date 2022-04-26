@@ -71,7 +71,7 @@ def root_development(Crop,
     # Calculate root expansion (if in growing season)
     if growing_season == True:
         # If today is first day of season, root depth is equal to minimum depth
-        if NewCond_DAP == 1:
+        if round(NewCond_DAP,2) == 1:
             NewCond_Zroot = float(Crop.Zmin) * 1.0
             Zroot_init = float(Crop.Zmin) * 1.0
 
@@ -141,7 +141,7 @@ def root_development(Crop,
                 ZrTest = ZrAdj + (ZrRemain * (prof.Penetrability[layer_comp] / 100))
                 if (
                     (layeri == Soil_nLayer)
-                    or (prof.Penetrability[layer_comp] == 0)
+                    or (round(prof.Penetrability[layer_comp],2) == 0)
                     or (ZrTest <= Zsoil)
                 ):
                     ZrOUT = ZrTest
@@ -161,8 +161,8 @@ def root_development(Crop,
             dZr = Zr - ZrOld
 
         # Adjust rate of expansion for any stomatal water stress
-        if NewCond_TrRatio < 0.9999:
-            if Crop.fshape_ex >= 0:
+        if round(NewCond_TrRatio,4) <= 1:
+            if round(Crop.fshape_ex,2) >= 0:
                 dZr = dZr * NewCond_TrRatio
             else:
                 fAdj = (np.exp(NewCond_TrRatio * Crop.fshape_ex) - 1) / (np.exp(Crop.fshape_ex) - 1)
@@ -171,7 +171,7 @@ def root_development(Crop,
         # print(NewCond.dap,NewCond.th)
 
         # Adjust rate of root expansion for dry soil at expansion front
-        if dZr > 0.001:
+        if round(dZr,3) > 0.001:
             # Define water stress threshold for inhibition of root expansion
             pZexp = Crop.p_up[1] + ((1 - Crop.p_up[1]) / 2)
             # Define potential new root depth
@@ -202,7 +202,7 @@ def root_development(Crop,
                     dZr = dZr * Ks
 
         # Adjust for early senescence
-        if (NewCond_CC <= 0) and (NewCond_CC_NS > 0.5):
+        if (round(NewCond_CC,2) <= 0) and (round(NewCond_CC_NS,2) > 0.5):
             dZr = 0
 
         # Adjust root expansion for failure to germinate (roots cannot expand
@@ -220,9 +220,9 @@ def root_development(Crop,
                 2 * (ZrPot / NewCond_Zroot) * ((Crop.SxTop + Crop.SxBot) / 2) - Crop.SxTop
             ) / Crop.SxBot
 
-            if NewCond_Tpot > 0:
+            if round(NewCond_Tpot,2) > 0:
                 NewCond_rCor = NewCond_rCor * NewCond_TrRatio
-                if NewCond_rCor < 1:
+                if round(NewCond_rCor,2) < 1:
                     NewCond_rCor = 1
 
         else:
@@ -230,7 +230,7 @@ def root_development(Crop,
 
         # Limit rooting depth if groundwater table is present (roots cannot
         # develop below the water table)
-        if (water_table_presence == 1) and (NewCond_zGW > 0):
+        if (water_table_presence == 1) and (round(NewCond_zGW,2) > 0):
             if NewCond_Zroot > NewCond_zGW:
                 NewCond_Zroot = float(NewCond_zGW)
                 if NewCond_Zroot < Crop.Zmin:

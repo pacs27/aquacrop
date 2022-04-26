@@ -105,7 +105,7 @@ def transpiration(
             NewCond.age_days_ns = DAPadj - Crop.MaxCanopyCD
 
         # Update crop coefficient for ageing of canopy
-        if NewCond.age_days_ns > 5:
+        if round(NewCond.age_days_ns,2) > 5:
             Kcb_NS = Crop.Kcb - ((NewCond.age_days_ns - 5) * (Crop.fage / 100)) * NewCond.ccx_w_ns
         else:
             Kcb_NS = Crop.Kcb
@@ -121,7 +121,7 @@ def transpiration(
 
         # Correct potential transpiration for dying green canopy effects
         if NewCond.canopy_cover_ns < NewCond.ccx_w_ns:
-            if (NewCond.ccx_w_ns > 0.001) and (NewCond.canopy_cover_ns > 0.001):
+            if (round(NewCond.ccx_w_ns,3) > 0.001) and (NewCond.canopy_cover_ns > 0.001):
                 TrPot_NS = TrPot_NS * ((NewCond.canopy_cover_ns / NewCond.ccx_w_ns) ** Crop.a_Tr)
 
         # 2. Potential prior water stress and/or delayed development
@@ -144,15 +144,15 @@ def transpiration(
         TrPot0 = Kcb * (NewCond.canopy_cover_adj) * et0
         # Correct potential transpiration for dying green canopy effects
         if NewCond.canopy_cover < NewCond.ccx_w:
-            if (NewCond.ccx_w > 0.001) and (NewCond.canopy_cover > 0.001):
+            if (round(NewCond.ccx_w,3) > 0.001) and (round(NewCond.canopy_cover,3) > 0.001):
                 TrPot0 = TrPot0 * ((NewCond.canopy_cover / NewCond.ccx_w) ** Crop.a_Tr)
 
         # 3. Adjust potential transpiration for cold stress effects
         # Check if cold stress occurs on current day
-        if Crop.TrColdStress == 0:
+        if round(Crop.TrColdStress,2) == 0:
             # Cold temperature stress does not affect transpiration
             KsCold = 1
-        elif Crop.TrColdStress == 1:
+        elif round(Crop.TrColdStress,2) == 1:
             # Transpiration can be affected by cold temperature stress
             if gdd >= Crop.GDD_up:
                 # No cold temperature stress
@@ -182,7 +182,7 @@ def transpiration(
         # print(TrPot0,NewCond.dap)
 
         ## Calculate surface layer transpiration ##
-        if (NewCond.surface_storage > 0) and (NewCond.day_submerged < Crop.LagAer):
+        if (round(NewCond.surface_storage,2) > 0) and (NewCond.day_submerged < Crop.LagAer):
 
             # Update submergence days counter
             NewCond.day_submerged = NewCond.day_submerged + 1
@@ -337,7 +337,7 @@ def transpiration(
 
             # Determine taw (m3/m3) for compartment
             thTAW = prof.th_fc[comp] - prof.th_wp[comp]
-            if Crop.ETadj == 1:
+            if round(Crop.ETadj,2) == 1:
                 # Adjust stomatal stress threshold for et0 on current day
                 p_up_sto = Crop.p_up[1] + (0.04 * (5 - et0)) * (np.log10(10 - 9 * Crop.p_up[1]))
 
@@ -353,7 +353,7 @@ def transpiration(
                 # Transpiration from compartment is affected by water stress
                 Wrel = (prof.th_fc[comp] - NewCond.th[comp]) / (prof.th_fc[comp] - prof.th_wp[comp])
                 pRel = (Wrel - Crop.p_up[1]) / (Crop.p_lo[1] - Crop.p_up[1])
-                if pRel <= 0:
+                if round(pRel,2) <= 0:
                     KsComp = 1
                 elif pRel >= 1:
                     KsComp = 0
@@ -362,9 +362,9 @@ def transpiration(
                         (np.exp(pRel * Crop.fshape_w[1]) - 1) / (np.exp(Crop.fshape_w[1]) - 1)
                     )
 
-                if KsComp > 1:
+                if round(KsComp,2) > 1:
                     KsComp = 1
-                elif KsComp < 0:
+                elif round(KsComp,2) < 0:
                     KsComp = 0
 
             else:
@@ -390,7 +390,7 @@ def transpiration(
                 AerComp = (prof.th_s[comp] - NewCond.th[comp]) / (
                     prof.th_s[comp] - (prof.th_s[comp] - (Crop.Aer / 100))
                 )
-                if AerComp < 0:
+                if round(AerComp,2) < 0:
                     AerComp = 0
 
                 AerComp = (fAer + (NewCond.aer_days_comp[comp] - 1) * AerComp) / (
@@ -436,7 +436,7 @@ def transpiration(
             TrAct = TrAct + (Sink * 1000 * prof.dz[comp])
 
         ## Add net irrigation water requirement (if this mode is specified) ##
-        if (IrrMngt_IrrMethod == 4) and (TrPot > 0):
+        if (IrrMngt_IrrMethod == 4) and (round(TrPot,2) > 0):
             # Initialise net irrigation counter
             IrrNet = 0
             # Get root zone water content
@@ -513,7 +513,7 @@ def transpiration(
             NewCond.canopy_cover = NewCond.cc_prev
 
         ## Update transpiration ratio ##
-        if TrPot0 > 0:
+        if round(TrPot0,2) > 0:
             if TrAct < TrPot0:
                 NewCond.tr_ratio = TrAct / TrPot0
             else:
@@ -522,9 +522,9 @@ def transpiration(
         else:
             NewCond.tr_ratio = 1
 
-        if NewCond.tr_ratio < 0:
+        if round(NewCond.tr_ratio,2) < 0:
             NewCond.tr_ratio = 0
-        elif NewCond.tr_ratio > 1:
+        elif round(NewCond.tr_ratio,2) > 1:
             NewCond.tr_ratio = 1
 
     else:

@@ -45,7 +45,7 @@ def cc_required_time(cc_prev, CCo, CCx, CGC, CDC, Mode):
 
     ## Get CGC and/or time (gdd or CD) required to reach canopy_cover on previous day ##
     if Mode == "CGC":
-        if cc_prev <= (CCx / 2):
+        if round(cc_prev,4) <= round((CCx / 2),4):
 
             # print(cc_prev,CCo,(tSum-dt),tSum,dt)
             CGCx = np.log(cc_prev / CCo)

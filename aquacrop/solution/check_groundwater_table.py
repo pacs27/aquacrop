@@ -48,6 +48,7 @@ def check_groundwater_table(
     """
     
     ## Perform calculations (if variable water table is present) ##
+    # TODO: WATER TABLE SHOULD BE TRUE OR FALSE
     if water_table_presence == 1:
 
         # Update groundwater conditions for current day
@@ -57,7 +58,7 @@ def check_groundwater_table(
         zMid = prof.zMid
 
         # Check if water table is within modelled soil profile
-        if NewCond_zGW >= 0:
+        if round(NewCond_zGW,4) >= 0:
             if len(zMid[zMid >= NewCond_zGW]) == 0:
                 NewCond_WTinSoil = False
             else:
@@ -74,26 +75,26 @@ def check_groundwater_table(
         thfcAdj = np.zeros(compi + 1)
         # Find thFCadj for all compartments
         while compi >= 0:
-            if prof.th_fc[compi] <= 0.1:
+            if round(prof.th_fc[compi],2) <= 0.1:
                 Xmax = 1
             else:
-                if prof.th_fc[compi] >= 0.3:
+                if round(prof.th_fc[compi],2) >= 0.3:
                     Xmax = 2
                 else:
                     pF = 2 + 0.3 * (prof.th_fc[compi] - 0.1) / 0.2
                     Xmax = (np.exp(pF * np.log(10))) / 100
 
-            if (NewCond_zGW < 0) or ((NewCond_zGW - zMid[compi]) >= Xmax):
+            if (round(NewCond_zGW,4) < 0) or (round((NewCond_zGW - zMid[compi]),4) >= round(Xmax,4)):
                 for ii in range(compi):
 
                     thfcAdj[ii] = prof.th_fc[ii]
 
                 compi = -1
             else:
-                if prof.th_fc[compi] >= prof.th_s[compi]:
+                if round(prof.th_fc[compi],4) >= round(prof.th_s[compi],4):
                     thfcAdj[compi] = prof.th_fc[compi]
                 else:
-                    if zMid[compi] >= NewCond_zGW:
+                    if round(zMid[compi],4) >= round(NewCond_zGW,4):
                         thfcAdj[compi] = prof.th_s[compi]
                     else:
                         dV = prof.th_s[compi] - prof.th_fc[compi]

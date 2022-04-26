@@ -55,7 +55,7 @@ def adjust_CCx(cc_prev, CCo, CCx, CGC, CDC, dt, tSum, Crop_CanopyDevEnd, Crop_CC
     tCCtmp = cc_required_time(cc_prev, CCo, CCx, CGC, CDC, "CGC")
 
     ## Determine CCx adjusted ##
-    if tCCtmp > 0:
+    if round(tCCtmp,4) > 0:
         tCCtmp = tCCtmp + (Crop_CanopyDevEnd - tSum) + dt
         CCxAdj = cc_development(CCo, CCx, CGC, CDC, tCCtmp, "Growth", Crop_CCx)
     else:

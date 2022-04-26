@@ -76,13 +76,13 @@ def rainfall_partition(
     # NewCond = InitCond
 
     ## Calculate runoff ##
-    if (FieldMngt_SRinhb == False) and ((FieldMngt_Bunds == False) or (FieldMngt_zBund < 0.001)):
+    if (FieldMngt_SRinhb == False) and ((FieldMngt_Bunds == False) or (round(FieldMngt_zBund,3) < 0.001)):
         # Surface runoff is not inhibited and no soil bunds are on field
         # Reset submerged days
         NewCond_DaySubmerged = 0
         # Adjust curve number for field management practices
         cn = Soil_CN * (1 + (FieldMngt_CNadjPct / 100))
-        if Soil_AdjCN == 1:  # Adjust cn for antecedent moisture
+        if round(Soil_AdjCN,2) == 1:  # Adjust cn for antecedent moisture
             # Calculate upper and lowe curve number bounds
             CNbot = round(
                 1.4 * (np.exp(-14 * np.log(10)))
@@ -99,7 +99,7 @@ def rainfall_partition(
             # Check which compartment cover depth of top soil used to adjust
             # curve number
             comp_sto_array = prof.dzsum[prof.dzsum >= Soil_zCN]
-            if comp_sto_array.shape[0] == 0:
+            if round(comp_sto_array.shape[0],2) == 0:
                 comp_sto = int(Soil_nComp)
             else:
                 comp_sto = int(Soil_nComp - comp_sto_array.shape[0])
@@ -113,9 +113,9 @@ def rainfall_partition(
 
                 wx = 1.016 * (1 - np.exp(-4.16 * (prof.dzsum[ii] / Soil_zCN)))
                 wrel[ii] = wx - xx
-                if wrel[ii] < 0:
+                if round(wrel[ii],2) < 0:
                     wrel[ii] = 0
-                elif wrel[ii] > 1:
+                elif round(wrel[ii],2) > 1:
                     wrel[ii] = 1
 
                 xx = wx
@@ -131,9 +131,9 @@ def rainfall_partition(
                 )
 
             # Calculate adjusted curve number
-            if wet_top > 1:
+            if round(wet_top,2) > 1:
                 wet_top = 1
-            elif wet_top < 0:
+            elif round(wet_top,2) < 0:
                 wet_top = 0
 
             cn = round(CNbot + (CNtop - CNbot) * wet_top)
@@ -141,7 +141,7 @@ def rainfall_partition(
         # Partition rainfall into runoff and infiltration (mm)
         S = (25400 / cn) - 254
         term = precipitation - ((5 / 100) * S)
-        if term <= 0:
+        if round(term,2) <= 0:
             Runoff = 0
             Infl = precipitation
         else:

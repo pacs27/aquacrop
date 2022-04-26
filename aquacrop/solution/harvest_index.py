@@ -131,7 +131,7 @@ def harvest_index(prof, Soil_zTop, Crop, InitCond, et0, temp_max, temp_min, grow
         HIt = NewCond.dap - NewCond.delayed_cds - Crop.HIstartCD - 1
 
         # Calculate harvest index
-        if (NewCond.yield_form == True) and (HIt >= 0):
+        if (NewCond.yield_form == True) and (round(HIt,2) >= 0):
             # print(NewCond.dap)
             # Root/tuber or fruit/grain crops
             if (Crop.CropType == 2) or (Crop.CropType == 3):
@@ -145,7 +145,7 @@ def harvest_index(prof, Soil_zTop, Crop, InitCond, et0, temp_max, temp_min, grow
 
                 # Determine adjustment for crop pollination failure
                 if Crop.CropType == 3:  # Adjustment only for fruit/grain crops
-                    if (HIt > 0) and (HIt <= Crop.FloweringCD):
+                    if (round(HIt ,2)> 0) and (HIt <= Crop.FloweringCD):
 
                         NewCond.f_pol = HIadj_pollination(
                             NewCond.canopy_cover,
@@ -164,7 +164,7 @@ def harvest_index(prof, Soil_zTop, Crop, InitCond, et0, temp_max, temp_min, grow
                     HImax = Crop.HI0
 
                 # Determine adjustments for post-anthesis water stress
-                if HIt > 0:
+                if round(HIt,2) > 0:
                     (NewCond.s_cor1,
                     NewCond.s_cor2,
                     NewCond.fpost_upp,

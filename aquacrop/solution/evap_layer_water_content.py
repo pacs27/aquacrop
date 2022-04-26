@@ -80,7 +80,7 @@ def evap_layer_water_content(
         # Water storage in evaporation layer at air dry (mm)
         Wevap_Dry += factor * 1000 * prof.th_dry[ii] * prof.dz[ii]
 
-    if Wevap_Act < 0:
+    if round(Wevap_Act,2) < 0:
         Wevap_Act = 0
 
     return Wevap_Sat, Wevap_Fc, Wevap_Wp, Wevap_Dry, Wevap_Act

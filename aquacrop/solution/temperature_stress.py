@@ -54,7 +54,7 @@ def temperature_stress(Crop, temp_max, temp_min):
     # Kst = KstClass()
 
     # Calculate effects of heat stress on pollination
-    if Crop.PolHeatStress == 0:
+    if round(Crop.PolHeatStress,2) == 0:
         # No heat stress effects on pollination
         Kst_PolH = 1
     elif Crop.PolHeatStress == 1:
@@ -70,7 +70,7 @@ def temperature_stress(Crop, temp_max, temp_min):
             )
 
     # Calculate effects of cold stress on pollination
-    if Crop.PolColdStress == 0:
+    if round(Crop.PolColdStress,2) == 0:
         # No cold stress effects on pollination
         Kst_PolC = 1
     elif Crop.PolColdStress == 1:

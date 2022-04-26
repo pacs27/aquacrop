@@ -87,7 +87,7 @@ def root_zone_water(
         # Water storage in root zone at aeration stress threshold (mm)
         WrAer = WrAer + round(factor * 1000 * (prof.th_s[ii] - (Crop_Aer / 100)) * prof.dz[ii], 2)
 
-    if WrAct < 0:
+    if round(WrAct,2) < 0:
         WrAct = 0
 
     # define total available water, depletion, root zone water content
@@ -154,7 +154,7 @@ def root_zone_water(
             WrWP_Zt = WrWP_Zt + (factor * 1000 * prof.th_wp[ii] * prof.dz[ii])
 
         # Ensure available water in top soil is not less than zero
-        if WrAct_Zt < 0:
+        if round(WrAct_Zt,2) < 0:
             WrAct_Zt = 0
 
         # Calculate total available water in top soil (m3/m3)

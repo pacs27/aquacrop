@@ -65,10 +65,10 @@ def HIadj_post_anthesis(
     dap = NewCond_DAP - InitCond_DelayedCDs
     if (
         (dap <= (Crop.CanopyDevEndCD + 1))
-        and (tmax1 > 0)
-        and (NewCond_Fpre > 0.99)
-        and (NewCond_CC > 0.001)
-        and (Crop.a_HI > 0)
+        and (round(tmax1,2) > 0)
+        and (round(NewCond_Fpre,2) > 0.99)
+        and (round(NewCond_CC,3) > 0.001)
+        and (round(Crop.a_HI,2) > 0)
     ):
         dCor = 1 + (1 - Ksw.exp) / Crop.a_HI
         NewCond_sCor1 = InitCond_sCor1 + (dCor / tmax1)
@@ -80,10 +80,10 @@ def HIadj_post_anthesis(
     dap = NewCond_DAP - InitCond_DelayedCDs
     if (
         (dap <= (Crop.HIendCD + 1))
-        and (tmax2 > 0)
-        and (NewCond_Fpre > 0.99)
-        and (NewCond_CC > 0.001)
-        and (Crop.b_HI > 0)
+        and (round(tmax2,2) > 0)
+        and (round(NewCond_Fpre,3) > 0.99)
+        and (round(NewCond_CC,3) > 0.001)
+        and (round(Crop.b_HI,2) > 0)
     ):
         # print(Ksw.sto)
         dCor = np.power(Ksw.sto, 0.1) * (1 - (1 - Ksw.sto) / Crop.b_HI)
@@ -92,13 +92,13 @@ def HIadj_post_anthesis(
         NewCond_fpost_dwn = (tmax2 / DayCor) * NewCond_sCor2
 
     # Determine total multiplier
-    if (tmax1 == 0) and (tmax2 == 0):
+    if (round(tmax1,2) == 0) and (round(tmax2,2) == 0):
         NewCond_Fpost = 1
     else:
-        if tmax2 == 0:
+        if round(tmax2,2) == 0:
             NewCond_Fpost = NewCond_fpost_upp
         else:
-            if tmax1 == 0:
+            if round(tmax1,2) == 0:
                 NewCond_Fpost = NewCond_fpost_dwn
             elif tmax1 <= tmax2:
                 NewCond_Fpost = NewCond_fpost_dwn * (

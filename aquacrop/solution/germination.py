@@ -71,7 +71,7 @@ def germination(InitCond, Soil_zGerm, prof, Crop_GermThr, Crop_PlantMethod, gdd,
                 WrWP = WrWP + round(factor * 1000 * prof.th_wp[ii] * prof.dz[ii], 3)
 
             # Limit actual water storage to not be less than zero
-            if Wr < 0:
+            if round(Wr,2) < 0:
                 Wr = 0
 
             # Calculate proportional water content

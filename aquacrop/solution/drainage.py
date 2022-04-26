@@ -72,13 +72,13 @@ def drainage(prof, th_init, th_fc_Adj_init):
         cKsat = prof.Ksat[ii]
 
         # Calculate drainage ability of compartment ii
-        if th_init[ii] <= th_fc_Adj_init[ii]:
+        if round(th_init[ii],4) <= round(th_fc_Adj_init[ii],4):
             dthdt = 0
 
         elif th_init[ii] >= cth_s:
             dthdt = ctau * (cth_s - cth_fc)
 
-            if (th_init[ii] - dthdt) < th_fc_Adj_init[ii]:
+            if round((th_init[ii] - dthdt),4) < round(th_fc_Adj_init[ii],4):
                 dthdt = th_init[ii] - th_fc_Adj_init[ii]
 
         else:
@@ -88,7 +88,7 @@ def drainage(prof, th_init, th_fc_Adj_init):
                 * ((np.exp(th_init[ii] - cth_fc) - 1) / (np.exp(cth_s - cth_fc) - 1))
             )
 
-            if (th_init[ii] - dthdt) < th_fc_Adj_init[ii]:
+            if round((th_init[ii] - dthdt),4) < round(th_fc_Adj_init[ii],4):
                 dthdt = th_init[ii] - th_fc_Adj_init[ii]
 
         # Drainage from compartment ii (mm)
@@ -99,7 +99,7 @@ def drainage(prof, th_init, th_fc_Adj_init):
         excess = 0
         prethick = cdzsum - cdz
         drainmax = dthdt * 1000 * prethick
-        if drainsum <= drainmax:
+        if round(drainsum,4) <= round(drainmax,4):
             drainability = True
         else:
             drainability = False
@@ -124,7 +124,7 @@ def drainage(prof, th_init, th_fc_Adj_init):
 
             # Calculate value of theta (thX) needed to provide a
             # drainage ability equal to cumulative drainage
-            if dthdt <= 0:
+            if round(dthdt,2) <= 0:
                 thX = th_fc_Adj_init[ii]
             elif ctau > 0:
                 A = 1 + (
@@ -305,7 +305,7 @@ def drainage(prof, th_init, th_fc_Adj_init):
         FluxOut[ii] = drainsum
 
         # Redistribute excess in compartment above
-        if excess > 0:
+        if round(excess,2) > 0:
             precomp = ii + 1
             while (excess > 0) and (precomp != 0):
                 # Update compartment counter
