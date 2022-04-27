@@ -169,6 +169,7 @@ def solution_single_time_step(
         NewCond.th_fc_Adj,
         param_struct.water_table,
         Groundwater,
+        NewCond.dap
     )
 
     # 2. Root development

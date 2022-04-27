@@ -30,6 +30,21 @@
       "env": {
         "DEVELOPMENT": "TRUE"
       }
+    },
+    {
+      "name": "Python debug Test: AQUACROP MODEL",
+      "python": "${workspaceFolder}/venv/bin/python3",
+      "type": "python",
+      "request": "launch",
+      "module": "unittest",
+      "args": [
+        "${workspaceFolder}/test/test_debug.py",
+       ],
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "env": {
+        "DEVELOPMENT": "TRUE"
+      }
     }
   ]
 }

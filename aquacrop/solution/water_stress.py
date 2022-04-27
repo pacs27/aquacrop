@@ -19,6 +19,7 @@ def water_stress(
     taw,
     et0,
     beta,
+    dap
 ):
     """
     Function to calculate water stress coefficients
@@ -55,6 +56,7 @@ def water_stress(
     # Store stress thresholds
     p_up = np.ones(nstress) * Crop_p_up
     p_lo = np.ones(nstress) * Crop_p_lo
+    print(type(dap))
     if Crop_ETadj == 1:
         # Adjust stress thresholds for et0 on currentbeta day (don't do this for
         # pollination water stress coefficient)
@@ -75,8 +77,11 @@ def water_stress(
 
     # Calculate relative depletion
     Drel = np.zeros(nstress)
+   
+
     for ii in range(nstress):
         if Dr <= (p_up[ii] * taw):
+           
             # No water stress
             Drel[ii] = 0
         elif (Dr > (p_up[ii] * taw)) and (Dr < (p_lo[ii] * taw)):

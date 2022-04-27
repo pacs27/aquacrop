@@ -60,7 +60,7 @@ def biomass_accumulation(
 
     ## Store initial conditions in a new structure for updating ##
     # NewCond = InitCond
-
+    
     ## Calculate biomass accumulation (if in growing season) ##
     if growing_season == True:
         # Get time for harvest index build-up

@@ -120,6 +120,7 @@ def canopy_cover(Crop, prof, Soil_zTop, InitCond, gdd, et0, growing_season):
             taw,
             et0,
             beta,
+            NewCond.dap
         )
 
         # water_stress(Crop, NewCond, Dr, taw, et0, beta)
@@ -345,6 +346,7 @@ def canopy_cover(Crop, prof, Soil_zTop, InitCond, gdd, et0, growing_season):
                         taw,
                         et0,
                         beta,
+                        NewCond.dap
                     )
 
                     # Ksw = water_stress(Crop, NewCond, Dr, taw, et0, beta)

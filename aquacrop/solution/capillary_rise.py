@@ -61,41 +61,41 @@ def capillary_rise(prof, Soil_nLayer, Soil_fshape_cr, NewCond, FluxOut, water_ta
 
         ######################### this needs fixing, will currently break####################
 
-        #         # Find top of next soil layer that is not within modelled soil profile
-        #         zTopLayer = 0
-        #         for layeri in np.sort(np.unique(prof.Layer)):
-        #             # Calculate layer thickness
-        #             l_idx = np.argwhere(prof.Layer==layeri).flatten()
+    # Find top of next soil layer that is not within modelled soil profile
+        zTopLayer = 0
+        for layeri in np.sort(np.unique(prof.Layer)):
+            # Calculate layer thickness
+            l_idx = np.argwhere(prof.Layer==layeri).flatten()
 
-        #             LayThk = prof.dz[l_idx].sum()
-        #             zTopLayer = zTopLayer+LayThk
+            LayThk = prof.dz[l_idx].sum()
+            zTopLayer = zTopLayer+LayThk
 
-        #         # Check for restrictions on upward flow caused by properties of
-        #         # compartments that are not modelled in the soil water balance
-        #         layeri = prof.Layer[-1]
+        # Check for restrictions on upward flow caused by properties of
+        # compartments that are not modelled in the soil water balance
+        layeri = prof.Layer[-1]
 
-        #         assert layeri == Soil_nLayer
+        assert layeri == Soil_nLayer
 
-        #         while (zTopLayer < z_gw) and (layeri < Soil_nLayer):
-        #             # this needs fixing, will currently break
+        while (zTopLayer < z_gw) and (layeri < Soil_nLayer):
+            # this needs fixing, will currently break
 
-        #             layeri = layeri+1
-        #             compdf = prof.Layer[layeri]
-        #             if (compdf.Ksat > 0) and (z_gw > 0) and ((z_gw-zTopLayer) < 4):
-        #                 if zTopLayer >= z_gw:
-        #                     LimCR = 99
-        #                 else:
-        #                     LimCR = np.exp((np.log(z_gw-zTopLayer)-compdf.bCR)/compdf.aCR)
-        #                     if LimCR > 99:
-        #                         LimCR = 99
+            layeri = layeri+1
+            compdf = prof.Layer[layeri]
+            if (compdf.Ksat > 0) and (z_gw > 0) and ((z_gw-zTopLayer) < 4):
+                if zTopLayer >= z_gw:
+                    LimCR = 99
+                else:
+                    LimCR = np.exp((np.log(z_gw-zTopLayer)-compdf.bCR)/compdf.aCR)
+                    if LimCR > 99:
+                        LimCR = 99
 
-        #             else:
-        #                 LimCR = 0
+            else:
+                LimCR = 0
 
-        #             if MaxCR > LimCR:
-        #                 MaxCR = LimCR
+            if MaxCR > LimCR:
+                MaxCR = LimCR
 
-        #             zTopLayer = zTopLayer+compdf.dz
+            zTopLayer = zTopLayer+compdf.dz
 
         #####################################################################################
 
@@ -136,7 +136,7 @@ def capillary_rise(prof, Soil_nLayer, Soil_fshape_cr, NewCond, FluxOut, water_ta
                 Krel = 1
 
             # Check if room is available to store water from capillary rise
-            dth = NewCond.th_fc_Adj[compi] - NewCond.th[compi]
+            dth = round(NewCond.th_fc_Adj[compi] - NewCond.th[compi],4)
 
             # Store water if room is available
             if (dth > 0) and ((zBot - prof.dz[compi] / 2) < z_gw):

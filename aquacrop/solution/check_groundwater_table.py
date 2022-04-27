@@ -19,6 +19,7 @@ def check_groundwater_table(
     NewCond_th_fc_Adj,
     water_table_presence,
     z_gw,
+    dap
 ):
     """
     Function to check for presence of a groundwater table, and, if present,
@@ -68,9 +69,10 @@ def check_groundwater_table(
             idx = np.argwhere(zMid >= NewCond_zGW).flatten()[0]
             for ii in range(idx, len(prof.Comp)):
                 NewCond_th[ii] = prof.th_s[ii]
-
+        print(dap)
         # Adjust compartment field capacity
         compi = len(prof.Comp) - 1
+        compi2 = len(prof.Comp) - 1
         thfcAdj = np.zeros(compi + 1)
         # Find thFCadj for all compartments
         while compi >= 0:
@@ -82,9 +84,10 @@ def check_groundwater_table(
                 else:
                     pF = 2 + 0.3 * (prof.th_fc[compi] - 0.1) / 0.2
                     Xmax = (np.exp(pF * np.log(10))) / 100
-
+            test1= (NewCond_zGW - zMid[compi])
+            test2=Xmax
             if (NewCond_zGW < 0) or ((NewCond_zGW - zMid[compi]) >= Xmax):
-                for ii in range(compi):
+                for ii in range(compi+1):
 
                     thfcAdj[ii] = prof.th_fc[ii]
 

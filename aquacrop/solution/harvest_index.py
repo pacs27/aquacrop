@@ -119,6 +119,7 @@ def harvest_index(prof, Soil_zTop, Crop, InitCond, et0, temp_max, temp_min, grow
             taw,
             et0,
             beta,
+            NewCond.dap
         )
         Ksw = KswNT(exp=Ksw_Exp, sto=Ksw_Sto, sen=Ksw_Sen, pol=Ksw_Pol, sto_lin=Ksw_StoLin )
         # Calculate temperature stress

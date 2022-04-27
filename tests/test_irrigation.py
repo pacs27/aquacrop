@@ -1,4 +1,4 @@
-import unittest
+''' import unittest
 import pandas as pd
 
 from aquacrop.utils.data import get_filepath
@@ -217,3 +217,4 @@ def create_pandas_irrigation_schedule(sim_start, sim_end):
 
 if __name__ == "__main__":
     unittest.main()
+ '''

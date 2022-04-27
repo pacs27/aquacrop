@@ -279,6 +279,7 @@ def transpiration(
             taw,
             et0,
             beta,
+            NewCond.dap
         )
         # Ksw = water_stress(Crop, NewCond, Dr, taw, et0, beta)
 
