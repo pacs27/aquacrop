@@ -123,20 +123,21 @@ def read_model_parameters(
         new_harvest_date = str(harv.month) + "/" + str(harv.day)
         crop.harvest_date = new_harvest_date
 
-    # Check if the simulation in the following year does not reach the planting date.
-    last_simulation_year_does_not_start = pd.to_datetime("1990/" + f'{sim_end_date.month}' +"/" + f'{sim_end_date.day}') < pd.to_datetime(
-        "1990/" + crop.planting_date
-        )
-    if(last_simulation_year_does_not_start):
-        start_end_years = pd.DatetimeIndex([sim_start_date, sim_end_date-relativedelta(years=1)]).year
-    else:
-        start_end_years = pd.DatetimeIndex([sim_start_date, sim_end_date]).year
-   
     # check if crop growing season runs over calander year
     # Planting and harvest dates are in days/months format so just add arbitrary year
     single_year = pd.to_datetime("1990/" + crop.planting_date) < pd.to_datetime(
         "1990/" + crop.harvest_date
     )
+    # Check if the simulation in the following year does not reach the planting date.
+    last_simulation_year_does_not_start = pd.to_datetime("1990/" + f'{sim_end_date.month}' +"/" + f'{sim_end_date.day}') < pd.to_datetime(
+        "1990/" + crop.planting_date
+        )
+    if(single_year and last_simulation_year_does_not_start):
+        start_end_years = pd.DatetimeIndex([sim_start_date, sim_end_date-relativedelta(years=1)]).year
+    else:
+        start_end_years = pd.DatetimeIndex([sim_start_date, sim_end_date]).year
+   
+   
 
     if single_year:
         # if normal year

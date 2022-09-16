@@ -18,9 +18,9 @@ class TestLastYearNotStarted(unittest.TestCase):
     _weather_data = prepare_weather(_weather_file_path)
 
     _model_os = AquaCropModel(
-                sim_start_time=f"{1982}/05/15",
-                sim_end_time=f"{1983}/03/12",
-                weather_df=weather_data,
+                sim_start_time=f"{1983}/05/15", # test with leap year
+                sim_end_time=f"{1984}/05/14",
+                weather_df=_weather_data,
                 soil=Soil(soil_type='SiltClayLoam'),
                 crop=Crop('Wheat', planting_date='05/15'),
                 initial_water_content=InitialWaterContent(),
@@ -38,3 +38,6 @@ class TestLastYearNotStarted(unittest.TestCase):
         
         self.assertEqual(model_is_finished, True)
 
+
+if __name__ == "__main__":
+    unittest.main()
