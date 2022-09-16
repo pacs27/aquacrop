@@ -1,8 +1,10 @@
 import numpy as np
 import pandas as pd
+from dateutil.relativedelta import relativedelta
+from typing import TYPE_CHECKING
+
 from ..entities.paramStruct import ParamStruct
 from .compute_crop_calendar import compute_crop_calendar
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     # Important: classes are only imported when types are checked, not in production.
@@ -105,11 +107,7 @@ def read_model_parameters(
     sim_start_date = clock_struct.simulation_start_date
     sim_end_date = clock_struct.simulation_end_date
 
-    # extract the years and months of these dates
-    # pylint: disable=no-member
-    start_end_years = pd.DatetimeIndex([sim_start_date, sim_end_date]).year
-    # TODO: start_end_months is necessary?
-    # start_end_months = pd.DatetimeIndex([sim_start_date, sim_end_date]).month
+    
 
     if crop.harvest_date is None:
         crop = compute_crop_calendar(
@@ -125,14 +123,24 @@ def read_model_parameters(
         new_harvest_date = str(harv.month) + "/" + str(harv.day)
         crop.harvest_date = new_harvest_date
 
+    # Check if the simulation in the following year does not reach the planting date.
+    last_simulation_year_does_not_start = pd.to_datetime("1990/" + f'{sim_end_date.month}' +"/" + f'{sim_end_date.day}') < pd.to_datetime(
+        "1990/" + crop.planting_date
+        )
+    if(last_simulation_year_does_not_start):
+        start_end_years = pd.DatetimeIndex([sim_start_date, sim_end_date-relativedelta(years=1)]).year
+    else:
+        start_end_years = pd.DatetimeIndex([sim_start_date, sim_end_date]).year
+   
     # check if crop growing season runs over calander year
     # Planting and harvest dates are in days/months format so just add arbitrary year
     single_year = pd.to_datetime("1990/" + crop.planting_date) < pd.to_datetime(
         "1990/" + crop.harvest_date
     )
+
     if single_year:
         # if normal year
-
+       
         # specify the planting and harvest years as normal
         plant_years = list(range(start_end_years[0], start_end_years[1] + 1))
         harvest_years = plant_years
