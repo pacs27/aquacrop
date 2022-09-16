@@ -426,7 +426,9 @@ class AquaCropModel:
         Additional model information.
 
         Returns:
-            dict: {has_model_finished,execution_time}
+            dict: 
+                has_model_finished (bool): true if the end of the simulation (sim_end_time) has been reached. 
+                execution_time (int): time taken to run the model (seconds)
 
         """
         if self.__has_model_executed:
