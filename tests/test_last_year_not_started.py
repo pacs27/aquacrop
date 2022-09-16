@@ -9,9 +9,9 @@ from aquacrop import AquaCropModel, Soil, Crop, InitialWaterContent, IrrigationM
 from aquacrop.utils import prepare_weather, get_filepath
 
 
-class TestLastYearNotStarted(unittest.TestCase):
+class TestLastYearNotStartedInSingleYearCrops(unittest.TestCase):
     """
-    Test what happend when last year in the simulation does not reach the planting date.
+    Test what happend when last year in the simulation does not reach the planting date in single year crops.
     """
     _weather_file_path = get_filepath("tunis_climate.txt")
 
