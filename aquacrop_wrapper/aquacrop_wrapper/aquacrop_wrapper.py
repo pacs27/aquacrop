@@ -1,18 +1,21 @@
+# import sys
+# sys.path.append('.\aquacrop\aquacrop')
 
 from aquacrop import (
-    AquaCropModel,
-    Soil,
-    Crop,
-    InitialWaterContent,
-    IrrigationManagement,
-)
+        AquaCropModel,
+        Soil,
+        Crop,
+        InitialWaterContent,
+        IrrigationManagement,
+    )
 from aquacrop.utils import prepare_weather, get_filepath
+
 
 try:
     from constants import AquacropConstants
-
 except ImportError:
     from ..constants import AquacropConstants
+   
 
 
 class Crop:

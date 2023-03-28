@@ -6,7 +6,7 @@
     "configurations": [
         {
             "name": "WINDOWS Python: Current File",
-            "python": "C:/Users/Usuario/OneDrive - Universidad de Córdoba/Escritorio/PROGRAMACION/CANOPEO_PY/venv/Scripts/python",
+            "python": "${workspaceFolder}/venv/Scripts/python",
             "type": "python",
             "request": "launch",
             "program": "${file}",

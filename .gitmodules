@@ -1,0 +1,6 @@
+[submodule "aquacrop"]
+	path = aquacrop
+	url = https://github.com/pacs27/aquacrop.git
+[submodule "aquacrop_wrapper/aquacrop"]
+	path = aquacrop_wrapper/aquacrop
+	url = https://github.com/pacs27/aquacrop.git
