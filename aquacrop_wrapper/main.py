@@ -2,9 +2,9 @@ import argparse
 
 try:
     from .constants import AquacropConstants
-    from .aquacrop_wrapper.aquacrop_wrapper import Crop, Soil, Irrigation, Weather, AquacropWrapper
+    from .aquacrop_wrapper.aquacrop_wrapper import WCrop, WSoil, WIrrigation, WWeather, AquacropWrapper
 except ImportError:
-    from aquacrop_wrapper.aquacrop_wrapper import Crop, Soil, Irrigation, Weather, AquacropWrapper
+    from aquacrop_wrapper.aquacrop_wrapper import WCrop, WSoil, WIrrigation, WWeather, AquacropWrapper
     from constants import AquacropConstants
 
 
@@ -16,6 +16,7 @@ parser.add_argument("-sstart", "--sim_start", type=str,
                     help="Date of simulation start (YYYY/MM/DD)")
 parser.add_argument("-send", "--sim_end", type=str,
                     help="Date of simulation end (YYYY/MM/DD)")
+parser.add_argument("--test_mode", action='store_true', help="Test mode (True/False)")
 parser.add_argument("-wpath", "--weather_path", type=str,
                     help="File path with weather data")
 parser.add_argument("-stype", "--soil_type",
@@ -32,10 +33,16 @@ parser.add_argument("-smt", "--soil_moisture_targets", type=str,
 args = parser.parse_args()
 
 # ----- Run Aquacrop -----
-crop = Crop(crop_type=args.crop_type, planting_date=args.plating_date)
-soil = Soil(soil_type=args.soil_type)
-irrigation = Irrigation(irrigation_method=args.irrigation_method)
-weather = Weather(weather_file_path=args.weather_path)
+print("args = ",args)
+crop = WCrop(crop_type=args.crop_type, planting_date=args.plating_date)
+soil = WSoil(soil_type=args.soil_type)
+irrigation = WIrrigation(irrigation_method=args.irrigation_method, initial_water_content=args.initial_water_content, soil_moisture_targets=args.soil_moisture_targets)
+weather = WWeather(weather_file_path=args.weather_path, test_mode=args.test_mode)
 aquacrop = AquacropWrapper(sim_start=args.sim_start, sim_end=args.sim_end, weather=weather, soil=soil, crop=crop, irrigation=irrigation)
 
 print(aquacrop.run())
+
+
+##  EXAMPLE 
+
+# python main.py -sstart 1982/05/01 -send 1983/10/30 --test_mode -wpath champion_climate.txt -stype SandyLoam -crop Maize -pdate 05/01 -iwc FC -imethod rainfed
