@@ -5,7 +5,7 @@ import time
 import datetime
 import os
 import logging
-from typing import Dict, Union, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, Union, Optional, Tuple, TYPE_CHECKING, Callable
 from .scripts.checkIfPackageIsCompiled import compile_all_AOT_files
 
 if TYPE_CHECKING:
@@ -85,7 +85,8 @@ class AquaCropModel:
     """
 
     # Model parameters
-    __steps_are_finished: bool = False  # True if all steps of the simulation are done.
+    # True if all steps of the simulation are done.
+    __steps_are_finished: bool = False
     __has_model_executed: bool = False  # Determines if the model has been run
     __has_model_finished: bool = False  # Determines if the model is finished
     __start_model_execution: float = 0.0  # Time when the execution start
@@ -126,7 +127,8 @@ class AquaCropModel:
         self.groundwater = groundwater
 
         if irrigation_management is None:
-            self.irrigation_management = IrrigationManagement(irrigation_method=0)
+            self.irrigation_management = IrrigationManagement(
+                irrigation_method=0)
         if field_management is None:
             self.field_management = FieldMngt()
         if fallow_field_management is None:
@@ -183,7 +185,8 @@ class AquaCropModel:
         """
         Check if weather dataframe is in a correct format.
         """
-        weather_df_columns = "Date MinTemp MaxTemp Precipitation ReferenceET".split(" ")
+        weather_df_columns = "Date MinTemp MaxTemp Precipitation ReferenceET".split(
+            " ")
         if not all([column in value for column in weather_df_columns]):
             raise ValueError(
                 "Error in weather_df format. Check if all the following columns exist "
@@ -203,7 +206,8 @@ class AquaCropModel:
         )
 
         # get _weather data
-        self.weather_df = read_weather_inputs(self._clock_struct, self.weather_df)
+        self.weather_df = read_weather_inputs(
+            self._clock_struct, self.weather_df)
 
         # read model params
         self._clock_struct, self._param_struct = read_model_parameters(
@@ -239,7 +243,8 @@ class AquaCropModel:
         self._param_struct = create_soil_profile(self._param_struct)
 
         # Outputs results (water_flux, crop_growth, final_stats)
-        self._outputs = Output(self._clock_struct.time_span, self._init_cond.th)
+        self._outputs = Output(
+            self._clock_struct.time_span, self._init_cond.th)
 
         # save model _weather to _init_cond
         self._weather = self.weather_df.values
@@ -250,6 +255,7 @@ class AquaCropModel:
         till_termination: bool = False,
         initialize_model: bool = True,
         process_outputs: bool = False,
+        controlled_variables_func: Callable = None,
     ) -> bool:
         """
         This function is responsible for executing the model.
@@ -275,7 +281,16 @@ class AquaCropModel:
 
         if till_termination:
             self.__start_model_execution = time.time()
+
             while self._clock_struct.model_is_finished is False:
+                if controlled_variables_func is not None:
+                    self._clock_struct,
+                    self._init_cond,
+                    self._param_struct,
+                    self._outputs = controlled_variables_func(self._clock_struct,
+                                                    self._init_cond,
+                                                    self._param_struct,
+                                                    self._outputs,)
 
                 (
                     self._clock_struct,
@@ -289,7 +304,8 @@ class AquaCropModel:
             return True
         else:
             if num_steps < 1:
-                raise ValueError("num_steps must be equal to or greater than 1.")
+                raise ValueError(
+                    "num_steps must be equal to or greater than 1.")
             self.__start_model_execution = time.time()
             for i in range(num_steps):
 
@@ -317,7 +333,6 @@ class AquaCropModel:
     def _perform_timestep(
         self,
     ) -> Tuple["ClockStruct", "InitialCondition", "ParamStruct", "Output"]:
-
         """
         Function to run a single time-step (day) calculation of AquaCrop-OS
         """
@@ -378,7 +393,8 @@ class AquaCropModel:
             if self.__has_model_finished:
                 return self._outputs.final_stats
             else:
-                return False  # If the model is not finished, the results are not generated.
+                # If the model is not finished, the results are not generated.
+                return False
         else:
             raise ValueError(
                 "You cannot get results without running the model. "
