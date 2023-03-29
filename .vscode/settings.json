@@ -1,4 +1,4 @@
 
 {
-    "python.analysis.extraPaths": ["app", "${workspaceFolder}/venv/Lib/site-packages"]
+    "python.analysis.extraPaths": ["app", "${workspaceFolder}/venv/Lib/site-packages", "${workspaceFolder}/aquacrop_wrapper/aquacrop"]
 }

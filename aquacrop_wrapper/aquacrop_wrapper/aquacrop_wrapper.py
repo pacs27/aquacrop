@@ -1,93 +1,65 @@
-# import sys
-# sys.path.append('.\aquacrop\aquacrop')
+import sys
+sys.path.append('/Users/pacopuig/Desktop/PROGRAMACION/aquacrop_cameras/aquacrop_wrapper/aquacrop')
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from aquacrop.entities.clockStruct import ClockStruct
+    from aquacrop.entities.initParamVariables import InitialCondition
+    from aquacrop.entities.paramStruct import ParamStruct
+    from aquacrop.entities.output import Output
+    from .crop_wrapper import WCrop
+    from .irrigation_wrapper import WIrrigation
+    from .soil_wrapper import WSoil
+    from .weather_wrapper import WWeather
+
+
 
 from aquacrop import (
-        AquaCropModel,
-        Soil,
-        Crop,
-        InitialWaterContent,
-        IrrigationManagement,
-    )
-from aquacrop.utils import prepare_weather, get_filepath
+    AquaCropModel,
+)
 
 
 try:
-    from constants import AquacropConstants
+    from aquacrop_wrapper.json_functions import JSONFunctions
 except ImportError:
-    from ..constants import AquacropConstants
-   
+    from .json_functions import JSONFunctions
 
 
-class WCrop:
-    def __init__(self, crop_type: AquacropConstants.TYPES_OF_CROPS, planting_date):
-        if (crop_type not in AquacropConstants.TYPES_OF_CROPS):
-            raise ValueError("""Invalid crop type, valid values are: Barley, Cotton, 
-                             DryBean, Maize, PaddyRice, Potato, Quinoa, Sorghum, 
-                             Soybean, SugarBeet, SugarCane, Sunflower, Tomato, Wheat""")
-        self.crop_type = crop_type
-        self.crop = Crop(c_name=self.crop_type, planting_date=planting_date)
 
 
-class WSoil:
-    def __init__(self, soil_type: AquacropConstants.TYPES_OF_SOILS):
-        if (soil_type not in AquacropConstants.TYPES_OF_SOILS):
-            raise ValueError("""Invalid soil type, valid values are: Clay, ClayLoam, 
-                             Loam, LoamySand, Sand, SandyClay, SandyClayLoam, SandyLoam, 
-                             Silt, SiltClayLoam, SiltLoam, SiltClay, Paddy, ac_TunisLocal""")
-        self.soil_type = soil_type
-        self.soil = Soil(soil_type=soil_type)
-
-
-class WIrrigation:
-    def __init__(self, irrigation_method: AquacropConstants.IRRIGATION_METHODS, initial_water_content: AquacropConstants.INITIAL_WATER_CONTENT, soil_moisture_targets):
-        if (irrigation_method not in AquacropConstants.IRRIGATION_METHODS.keys()):
-            raise ValueError("""Invalid irrigation method, valid values are: rainfed, 
-                             soil_moisture_targets, set_time_interval,
-                             predifined_schedule, net_irrigation, constant_depth""")
-        
-        if (initial_water_content not in AquacropConstants.INITIAL_WATER_CONTENT):
-            raise ValueError("""Invalid initial water content, valid values are: WP, FC, SAT""")
-        
-        self.initial_water_content = InitialWaterContent(value=[initial_water_content])
-
-        self.irrigation_method = AquacropConstants.IRRIGATION_METHODS[irrigation_method]
-
-        print(self.irrigation_method)
-        self.irrigation_management = IrrigationManagement(
-            irrigation_method=self.irrigation_method
-        )
-
-    def getIrrigation(self):
-        return (self.irrigation_management, self.initial_water_content)
-
-
-class WWeather:
-    def __init__(self, weather_file_path, test_mode=False):
-        self.weather_file_path = weather_file_path
-        print(test_mode)
-        if self.weather_file_path is None:
-            raise ValueError("Weather file path is not provided")
-        
-        if(test_mode):
-            self.weather_file_path = get_filepath(weather_file_path)
-            
-        self.weather = prepare_weather(
-            self.weather_file_path
-        )
 
 
 class AquacropWrapper:
+    """Wrapper for the AquaCropModel class from aquacrop package.
+        Args:
+            sim_start: Start date of the simulation in the format of YYYY-MM-DD
+            sim_end: End date of the simulation in the format of YYYY-MM-DD
+            weather: WWeather object that contains the weather data
+            soil: WSoil object that contains the soil data
+            crop: WCrop object that contains the crop data
+            irrigation: WIrrigation object that contains the irrigation data
+        Methods:
+            run: Runs the AquaCrop model and returns the final statistics
+        
+        TODO: RUN UNTIL THE CURRENT DATE, UPDATE THE PARAMETERS AND CONTINUE THE SIMULATION
 
-    def __init__(self,  sim_start, sim_end, weather: WWeather, soil: WSoil, crop: WCrop, irrigation: WIrrigation):
+    """
+
+    def __init__(self,  sim_start, sim_end, weather: "WWeather", soil: "WSoil", crop: "WCrop", irrigation: "WIrrigation"):
         self.sim_start = sim_start
         self.sim_end = sim_end
         self.weather = weather
         self.soil = soil
         self.crop = crop
         self.irrigation = irrigation
-        
+
     def run(self):
-        model = AquaCropModel(
+        """Runs the AquaCrop model and returns the final statistics
+
+        Returns:
+            _type_: _description_
+        """
+        self.model = AquaCropModel(
             weather_df=self.weather.weather,
             crop=self.crop.crop,
             soil=self.soil.soil,
@@ -96,7 +68,46 @@ class AquacropWrapper:
             sim_start_time=self.sim_start,
             sim_end_time=self.sim_end,
         )
-        model.run_model(till_termination=True)
-        final_statistics = model.get_simulation_results().head(10)
-    
-        return final_statistics
+        self.model.run_model(till_termination=True)
+
+        additional_information = self.model.get_additional_information()
+        return additional_information
+    @staticmethod
+    def controlled_variables_func(clock_struct: "ClockStruct", init_cond:"InitialCondition", param_struct:"ParamStruct", outputs:"Output"):
+        """ Note: This function is called by the AquaCrop model and should not be called directly.
+                It also depends on this library's implementation of the AquaCrop model. The implementation
+                of this function is inside the while loop of the core file in aquacrop.
+                
+            TODO: I know tha this is not the best approach to do this, but I couldn't find a better way 
+
+        Returns:
+            _type_: _description_
+        """
+        return  clock_struct, init_cond, param_struct, outputs
+
+    def save_outputs(self, file_path):
+        simulation_results = self.model.get_simulation_results()
+        water_storage = self.model.get_water_storage()
+        water_flux = self.model.get_water_flux()
+        crop_growth = self.model.get_crop_growth()
+        additional_information = self.model.get_additional_information()
+
+        json_functions = JSONFunctions()
+
+        simulation_result_json = json_functions.transform_pandas_to_json(
+            simulation_results)
+        water_storage_json = json_functions.transform_pandas_to_json(
+            water_storage)
+        water_flux_json = json_functions.transform_pandas_to_json(water_flux)
+        crop_growth_json = json_functions.transform_pandas_to_json(crop_growth)
+ 
+
+        json_files = {
+            "simulation_info": additional_information,
+            "simulation_results": json_functions.json_load(simulation_result_json),
+            "crop_growth": json_functions.json_load(crop_growth_json),
+            "water_storage": json_functions.json_load(water_storage_json),
+            "water_flux": json_functions.json_load(water_flux_json),
+        }
+
+        json_functions.save_json_file(json_files, file_path)
