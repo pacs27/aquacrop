@@ -7,9 +7,9 @@ class WWeather:
     """Wrapper for the Weather class from AquaCrop package.
     """
 
-    def __init__(self, weather_file_path, test_mode=False):
+    def __init__(self, weather_file_path=None, test_mode=False):
         self.weather_file_path = weather_file_path
-        print(test_mode)
+
         if self.weather_file_path is None:
             raise ValueError("Weather file path is not provided")
 

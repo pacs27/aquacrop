@@ -7,14 +7,19 @@ try:
     from .aquacrop_wrapper.irrigation_wrapper import WIrrigation
     from .aquacrop_wrapper.weather_wrapper import WWeather
     from .aquacrop_wrapper.aquacrop_wrapper import AquacropWrapper
-    
+    from .aquacrop_wrapper.aquacrop_variables_controller import AquacropVariablesController
+    from .weather_data.weather_ria_stations import WeatherRIAStations
+
+
 except ImportError:
     from aquacrop_wrapper.crop_wrapper import WCrop
     from aquacrop_wrapper.soil_wrapper import WSoil
     from aquacrop_wrapper.irrigation_wrapper import WIrrigation
     from aquacrop_wrapper.weather_wrapper import WWeather
     from aquacrop_wrapper.aquacrop_wrapper import AquacropWrapper
-    
+    from aquacrop_wrapper.aquacrop_variables_controller import AquacropVariablesController
+    from weather_data.weather_ria_stations import WeatherRIAStations
+
     from constants import AquacropConstants
 
 
@@ -45,6 +50,7 @@ parser.add_argument("-imethod", "--irrigation_method", choices=list(
     AquacropConstants.IRRIGATION_METHODS.keys()), type=str, help="Irrigation method")
 parser.add_argument("-itintervals", "--irrigation_time_interval", type=int,
                     help="Irrigation interval in days (only used if irrigation_method is equal to set_time_interval)")
+
 # parser.add_argument("-ischedule", "--irrigation_schedule", type=str, help="Irrigation schedule (only used if irrigation_method is equal to predifined_schedule)")
 parser.add_argument("-nismt", "--net_irrigation_soil_moisture_target", type=float,
                     help="Net irrigation soil moisture target (%taw) (only used if irrigation_method is equal to net_irrigation)")
@@ -55,6 +61,10 @@ parser.add_argument("-smt", "--soil_moisture_targets", type=str,
                     help="""(list): Soil moisture targets (%taw) to maintain in each growth stage 
                     (only used if irrigation method is equal to soil_moisture_targets). Info: growing stages are emergence, 
                     canopy_growth, max_canopy and senescence""")
+
+# type of simulation
+parser.add_argument("-simtype", "--simulation_types", type=str,
+                    choices=AquacropConstants.SIMULATION_TYPES, default="normal_simulation", help="Type of simulation")
 
 args = parser.parse_args()
 
@@ -70,12 +80,22 @@ irrigation = WIrrigation(irrigation_method=args.irrigation_method,
                          irrigation_time_interval=args.irrigation_time_interval
 
                          )
-weather = WWeather(weather_file_path=args.weather_path,
-                   test_mode=args.test_mode)
-aquacrop = AquacropWrapper(sim_start=args.sim_start, sim_end=args.sim_end,
-                           weather=weather, soil=soil, crop=crop, irrigation=irrigation)
+# weather = WWeather(weather_file_path=args.weather_path,
+#                    test_mode=args.test_mode)
 
-print(aquacrop.run())
+aquacrop_variables_controller = AquacropVariablesController(
+    simulation_types=args.simulation_types)
+weather_ria_stations = WeatherRIAStations()
+json_weather_data = weather_ria_stations.get_json_data(
+    province_id=14, station_id="2", initial_date=args.sim_start, end_date=args.sim_end, complete_data=True)
+aquacrop_weather = weather_ria_stations.transform_data_into_aquacrop_format(
+    json_weather_data=json_weather_data)
+
+aquacrop = AquacropWrapper(sim_start=args.sim_start, sim_end=args.sim_end,
+                           weather=aquacrop_weather, soil=soil, crop=crop, irrigation=irrigation)
+
+
+print(aquacrop.run(aquacrop_variables_controller=aquacrop_variables_controller))
 
 output_file_path = "/Users/pacopuig/Desktop/PROGRAMACION/aquacrop_cameras/aquacrop_wrapper/data/output.json"
 aquacrop.save_outputs(file_path=output_file_path)

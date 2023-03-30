@@ -29,15 +29,15 @@
             "request": "launch",
             "program": "${workspaceFolder}/aquacrop_wrapper/main.py",
             "args": [
-                "-sstart=1982/05/01",
-                "-send=1983/10/30",
+                "-sstart=2020/04/01",
+                "-send=2040/02/02",
                 "--test_mode",
-                "-wpath=champion_climate.txt",
-                "-stype=SandyLoam",
-                "-crop=Maize",
-                "-pdate=05/01",
+                "-stype=Loam",
+                "-crop=Wheat",
+                "-pdate=11/15",
                 "-iwc=FC",
-                "-imethod=rainfed"
+                "-imethod=rainfed",
+                "--simulation_types=normal_simulation"
             ],
             "console": "integratedTerminal",
             "justMyCode": true

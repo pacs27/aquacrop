@@ -53,3 +53,14 @@ class AquacropConstants:
     CROP_GROWTH_STAGES = {
         "emergence": 0, "canopy_growth": 1, "max_canopy": 2, "senescence": 3
     }
+    
+    SIMULATION_TYPES = {
+        "normal_simulation":0,
+        "real_time_update":1,
+    }
+
+    COMPLETE_WEATHER_DATA_TYPE = {
+        "last_year_data": 0,
+        "last_x_years_data": 1,
+        
+    }
