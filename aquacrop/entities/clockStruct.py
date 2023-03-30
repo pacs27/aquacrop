@@ -46,6 +46,7 @@ class ClockStruct:
     def __init__(self):
 
         self.time_step_counter = 0  # Keeps track of current timestep
+        self.current_simulation_date = None # The simulation date for the current time step. (YYYY-MM-DD)(Only for visual use)
         self.model_is_finished = False  # False unless model has finished
         self.simulation_start_date = 0  # Date of simulation start
         self.simulation_end_date = 0  # Date of simulation end

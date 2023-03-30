@@ -284,13 +284,14 @@ class AquaCropModel:
 
             while self._clock_struct.model_is_finished is False:
                 if controlled_variables_func is not None:
-                    self._clock_struct,
+                    (self._clock_struct,
                     self._init_cond,
                     self._param_struct,
-                    self._outputs = controlled_variables_func(self._clock_struct,
+                    self._outputs) = controlled_variables_func(self._clock_struct,
                                                     self._init_cond,
                                                     self._param_struct,
                                                     self._outputs,)
+
 
                 (
                     self._clock_struct,

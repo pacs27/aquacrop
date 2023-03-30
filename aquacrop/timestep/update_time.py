@@ -1,6 +1,7 @@
 """
 Update time function
 """
+import datetime
 from .reset_initial_conditions import reset_initial_conditions
 
 from typing import Tuple, TYPE_CHECKING
@@ -12,12 +13,13 @@ if TYPE_CHECKING:
     from aquacrop.entities.initParamVariables import InitialCondition
     from aquacrop.entities.paramStruct import ParamStruct
 
+
 def update_time(
     clock_struct: "ClockStruct",
     init_cond: "InitialCondition",
     param_struct: "ParamStruct",
     weather: "ndarray"
-    ) -> Tuple["ClockStruct","InitialCondition", "ParamStruct"]:
+) -> Tuple["ClockStruct", "InitialCondition", "ParamStruct"]:
     """
     Function to update current time in model.
 
@@ -58,6 +60,10 @@ def update_time(
                 clock_struct.time_step_counter = clock_struct.time_span.get_loc(
                     clock_struct.planting_dates[clock_struct.season_counter]
                 )
+
+                clock_struct.current_simulation_date = datetime.datetime.date(
+                    clock_struct.simulation_start_date) + datetime.timedelta(days=clock_struct.time_step_counter)
+
                 # Update start time of time-step
                 clock_struct.step_start_time = clock_struct.time_span[
                     clock_struct.time_step_counter
@@ -75,8 +81,12 @@ def update_time(
             # Simulation considers off-season, so progress by one time-step
             # (one day)
             # Time-step counter
+            clock_struct.current_simulation_date = datetime.datetime.date(
+                clock_struct.simulation_start_date) + datetime.timedelta(days=clock_struct.time_step_counter)
+           
             clock_struct.time_step_counter = clock_struct.time_step_counter + 1
-            # Start of time step (beginning of current day)
+
+             # Start of time step (beginning of current day)
             # clock_struct.time_span = pd.Series(clock_struct.time_span)
             clock_struct.step_start_time = clock_struct.time_span[
                 clock_struct.time_step_counter
