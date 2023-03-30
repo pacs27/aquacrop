@@ -155,7 +155,7 @@ class WeatherRIAStations():
 
         return json_weather_data
 
-    def get_json_with_weather_data(self, start_year, end_year, ria_province_id, ria_station_id, get_means=True):
+    def get_weather_dataframe(self, start_year, end_year, ria_province_id, ria_station_id, get_means=True, get_driest_year=False, get_rainest_year=False):
         # start_date = f"{year_of_the_weather_data}-01-01"
         # end_date = f"{year_of_the_weather_data+1}-01-01"
         # end_year should be less than start_year
@@ -172,118 +172,69 @@ class WeatherRIAStations():
 
         json_weather_data_last_year = self.ria.obtener_datos_diarios_periodo_con_et0(
             provincia_id=ria_province_id, estacion_id=ria_station_id,
-            fecha_inicio=f"{start_year}-01-01", fecha_fin=f"{end_year+1}-01-01")
+            fecha_inicio=f"{start_year}-01-01", fecha_fin=f"{end_year}-12-31")
+        
+        #TODO: Is better to create a list of type: `weather_complete_type``
+        weather_year_df = pd.DataFrame(json_weather_data_last_year)
+
 
         if get_means:
-            json_weather_data_last_year = self.get_means_from_weather_data(
-                json_weather_data_last_year)
+            weather_year_df = self.get_means_from_weather_data(
+                weather_year_df)
+        
+        if get_driest_year:
+             weather_year_df = self.get_the_driest_year(
+                weather_year_df)
+             
+        if get_rainest_year:
+            weather_year_df = self.get_the_driest_year(
+                weather_year_df)
 
-    def get_means_from_weather_data(self, json_weather_data):
-        # create empty dictionary to store weather data by year
-        # TODO: DO IT WITH NUMPY
-        weather_data_by_year = {}
-
-        # json data to pandas df
-        weather_df = pd.DataFrame(json_weather_data)
+    def get_means_from_weather_data(self, weather_year_df):
 
         # sum item where dia column is the same and get the mean. Preserve the fehca column
-
-        weather_df_dia_sum = weather_df.groupby(['dia']).mean()
+        weather_df_dia_sum = weather_year_df.groupby(['dia']).mean()
 
         # create a date column with the day of the year taking into account the leap year
         weather_df_dia_sum['fecha'] = weather_df_dia_sum.index.map(
             lambda day: self.get_date_using_julian_day(day_of_the_year=day, is_year_leap=True))
 
-        def init_weather_data_item(leap_year):
-            return {
-                'leap_year': leap_year,
-                'num_days': 0,
-                'humedadMedia': [],
-                'humedadMax': [],
-                # 'horMinHumMax': [],
-                'humedadMin': [],
-                # 'horMinHumMin': [],
-                'velViento': [],
-                'dirViento': [],
-                'velVientoMax': [],
-                # 'horMinVelMax': [],
-                'dirVientoVelMax': [],
-                'radiacion': [],
-                'precipitacion': [],
-                'et0': [],
-            }
-        # loop through all days in weather data
-        for day in json_weather_data:
-            # parse the date from the JSON key
-            date = datetime.datetime.strptime(day["fecha"], '%Y-%m-%d')
-            year = date.year
+        return weather_df_dia_sum
+    
+    def get_the_driest_year(self, weather_year_df):
+        
+        weather_year_df['fecha'] = pd.to_datetime(weather_year_df['fecha'])
 
-            # add the weather data for this day to the corresponding year's list
-            if year not in weather_data_by_year:
-                # determine number of days in this year (accounting for leap years)
-                if (year % 4 == 0 and year % 100 != 0) or year % 400 == 0:
-                    # leap year
-                    leap_year = True
-                else:
-                    # non-leap year
-                    leap_year = False
-                weather_data_by_year[year] = init_weather_data_item(leap_year)
-            weather_data_by_year[year]['humedadMedia'].append(
-                day['humedadMedia'])
-            weather_data_by_year[year]['humedadMax'].append(day['humedadMax'])
-            # weather_data_by_year[year]['horMinHumMax'].append(
-            #     day['horMinHumMax'])
-            weather_data_by_year[year]['humedadMin'].append(day['humedadMin'])
-            # weather_data_by_year[year]['horMinHumMin'].append(
-            #     day['horMinHumMin'])
-            weather_data_by_year[year]['velViento'].append(day['velViento'])
-            weather_data_by_year[year]['dirViento'].append(day['dirViento'])
-            weather_data_by_year[year]['velVientoMax'].append(
-                day['velVientoMax'])
-            # weather_data_by_year[year]['horMinVelMax'].append(
-            #     day['horMinVelMax'])
-            weather_data_by_year[year]['dirVientoVelMax'].append(
-                day['dirVientoVelMax'])
-            weather_data_by_year[year]['radiacion'].append(day['radiacion'])
-            weather_data_by_year[year]['precipitacion'].append(
-                day['precipitacion'])
-            weather_data_by_year[year]['et0'].append(day['et0'])
+        precipitation_df = weather_year_df.loc[:, ['precipitacion']]
+        
+        precipitation_df["year"] = weather_year_df["fecha"].apply(lambda fecha: fecha.year)
+        
+        precipitation_df = precipitation_df.groupby("year").sum()
+        
+        driest_year = precipitation_df['precipitacion'].idxmin()
+        
+        weather_filtered_df = weather_year_df[weather_year_df['fecha'].dt.year == driest_year]
+        
+        
+        return weather_filtered_df
+    
+    def get_rainest_year(self, weather_year_df):
+        
+        weather_year_df['fecha'] = pd.to_datetime(weather_year_df['fecha'])
 
-        # create empty dictionary for mean weather data
-        last_year = max(weather_data_by_year.keys())
-        len_last_year = len(weather_data_by_year[last_year]['humedadMedia'])
+        precipitation_df = weather_year_df.loc[:, ['precipitacion']]
+        
+        precipitation_df["year"] = weather_year_df["fecha"].apply(lambda fecha: fecha.year)
+        
+        precipitation_df = precipitation_df.groupby("year").sum()
+        
+        driest_year = precipitation_df['precipitacion'].idxmax()
+        
+        weather_filtered_df = weather_year_df[weather_year_df['fecha'].dt.year == driest_year]
+        
+        return weather_filtered_df
 
-        if (len_last_year < 365):
-            del weather_data_by_year[last_year]
-
-        for year, data in weather_data_by_year.items():
-            data['num_days'] = len(data['humedadMedia'])
-
-            index_29_2 = 59
-            if (data['num_days'] == 365):
-                for key, value in data.items():
-                    if (key != 'num_days' and key != 'leap_year'):
-                        data[key].insert(
-                            index_29_2, ((data[key][index_29_2-1] + data[key][index_29_2+1])/2))
-
-                data['num_days'] = len(data['humedadMedia'])
-
-        mean_weather_data = {}
-        for day_num in range(366):
-            for item in init_weather_data_item(0).keys():
-                for year in list(weather_data_by_year.keys()):
-                    if item not in mean_weather_data:
-                        mean_weather_data[item] = []
-                    if item != 'num_days' and item != 'leap_year':
-                        mean_weather_data[item].append(
-                            weather_data_by_year[year][item][day_num])
-
-        for weather_item in mean_weather_data:
-            if weather_item != 'num_days' and weather_item != 'leap_year':
-                mean_weather_data[weather_item] = sum(
-                    mean_weather_data[weather_item])/len(mean_weather_data[weather_item])
-
-        print("done")
+        
 
     def get_date_using_julian_day(self, day_of_the_year, is_year_leap=True):
         # using julian date and leap year to get the date
