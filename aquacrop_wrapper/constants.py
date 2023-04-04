@@ -61,6 +61,13 @@ class AquacropConstants:
 
     COMPLETE_WEATHER_DATA_TYPE = {
         "last_year_data": 0,
-        "last_x_years_data": 1,
+        "last_n_years": 1,
         
+    }
+    
+    COMPLETE_WEATHER_DATA_METHOD = {
+        "means": 0,
+        "driest_year": 1,
+        "rainest_year": 2
+
     }

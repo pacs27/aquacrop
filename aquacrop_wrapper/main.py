@@ -9,6 +9,7 @@ try:
     from .aquacrop_wrapper.aquacrop_wrapper import AquacropWrapper
     from .aquacrop_wrapper.aquacrop_variables_controller import AquacropVariablesController
     from .weather_data.weather_ria_stations import WeatherRIAStations
+    from .weather_data.weather import Weather
 
 
 except ImportError:
@@ -19,6 +20,7 @@ except ImportError:
     from aquacrop_wrapper.aquacrop_wrapper import AquacropWrapper
     from aquacrop_wrapper.aquacrop_variables_controller import AquacropVariablesController
     from weather_data.weather_ria_stations import WeatherRIAStations
+    from weather_data.weather import Weather
 
     from constants import AquacropConstants
 
@@ -86,8 +88,16 @@ irrigation = WIrrigation(irrigation_method=args.irrigation_method,
 aquacrop_variables_controller = AquacropVariablesController(
     simulation_types=args.simulation_types)
 weather_ria_stations = WeatherRIAStations()
+weather = Weather(start_simulation_date=args.sim_start,
+                  end_simulation_date=args.sim_end)
+
+weather_df = weather.get_weather_data_using_ria(start_year=2015, end_year=2019,
+                                                station_id="2", province_id=14, complete_data=True,
+                                                complete_type="last_n_years", complete_values_method="means")
 json_weather_data = weather_ria_stations.get_json_data(
     province_id=14, station_id="2", initial_date=args.sim_start, end_date=args.sim_end, complete_data=True)
+
+weather_df = weather_ria_stations.get_weather_data()
 aquacrop_weather = weather_ria_stations.transform_data_into_aquacrop_format(
     json_weather_data=json_weather_data)
 
