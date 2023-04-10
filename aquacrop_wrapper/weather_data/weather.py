@@ -1,10 +1,16 @@
+import sys
+import os
 
 try:
-    from weather_ria_stations import WeatherRIAStations
+    from aquacrop_wrapper.weather_data.weather_ria_stations import WeatherRIAStations
 except ImportError:
     from .weather_ria_stations import WeatherRIAStations
 
 
+path_to_utils = os.getenv("OWN_UTILS_PATH")
+sys.path.append(path_to_utils)
+
+from utils.weather.apis.open_weather_api import OpenWeather
 class Weather:
 
     def __init__(self, start_simulation_date, end_simulation_date):
@@ -41,3 +47,11 @@ class Weather:
         )
 
         return weather_df
+    
+    def get_forecast_for_the_next_5_days(self, lat_degrees, lon_degrees, altitude=0):
+        open_weather_api = OpenWeather()
+        
+        forecast_with_et0 = open_weather_api.get_forecast_on_geographic_coordinates_with_et0(lat_degrees=lat_degrees,lon_degrees=lon_degrees,altitude=altitude)
+        
+        return forecast_with_et0
+    

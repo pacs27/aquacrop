@@ -14,7 +14,19 @@
             "justMyCode": true
         },
         {
-            "name": "Python: Current File",
+            "name": "MAC: ALL TESTS",
+            "python": "${workspaceFolder}/venv/bin/python",
+            "type": "python",
+            "request": "launch",
+            "module": "unittest",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+              "DEVELOPMENT": "TRUE"
+            }
+          },
+        {
+            "name": "MAC: Current File",
             "python": "${workspaceFolder}/venv/bin/python3",
             "type": "python",
             "request": "launch",

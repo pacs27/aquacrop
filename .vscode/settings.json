@@ -1,4 +1,22 @@
-
 {
-    "python.analysis.extraPaths": ["app", "${workspaceFolder}/venv/Lib/site-packages", "${workspaceFolder}/aquacrop_wrapper/aquacrop"]
+    "python.analysis.extraPaths": [
+        "app",
+        "${workspaceFolder}/venv/Lib/site-packages",
+        "${workspaceFolder}/aquacrop_wrapper/aquacrop",
+        "/Users/pacopuig/Desktop/PROGRAMACION/PYTHON/own_utils_py"
+    ],
+    "python.formatting.provider": "black",
+    // "python.linting.enabled": true,
+    
+    // "python.analysis.typeCheckingMode": "basic",
+    // "python.linting.mypyEnabled": true,
+    // "python.linting.flake8Enabled": true,
+    // "python.linting.flake8Args": [
+    //     "--max-line-length=200",
+    // ],
+    // "python.linting.pylintEnabled": true,
+    // "python.linting.pylintArgs": [
+    //     "--missing-module-docstring=False"
+    // ],
+
 }

@@ -1,5 +1,11 @@
+import os
+class ProjectConstants:
+    """Constants used in Aquacrop project."""
+    # Aquacrop project constants
+    PROJECT_FOLDER_NAME = "aquacrop_cameras"
+    PARENT_DIRECTORY_PATH = os.getcwd()
 
-
+    
 class AquacropConstants:
     """Constants used in Aquacrop model."""
     # Aquacrop constants

@@ -1,2 +1,10 @@
 # aquacrop
 python-ria
+pyowm==3.3.0
+
+# utils requirements
+numpy==1.24.2
+pyowm==3.3.0
+pandas==2.0.0
+ephem==4.1.4
+astral==3.2

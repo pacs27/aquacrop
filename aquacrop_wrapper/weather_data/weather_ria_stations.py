@@ -7,9 +7,14 @@ import copy
 import pandas as pd
 
 try:
-    from constants import AquacropConstants
+    from aquacrop_wrapper.constants import AquacropConstants
 except ImportError:
-    from ..constants import AquacropConstants
+    import sys
+    import os
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+    from aquacrop_wrapper.constants import AquacropConstants
+
+
 
 ria = RIA()
 
@@ -411,7 +416,7 @@ class WeatherRIAStations():
             inplace=True,
         )
 
-        # set limit on ET0 to avoid divide by zero errors
+        # Set limit on ET0 to avoid divide by zero errors
         weather_df.ReferenceET.clip(lower=0.1, inplace=True)
 
         # Fill missing date values with the previous value
