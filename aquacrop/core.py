@@ -8,6 +8,8 @@ import logging
 from typing import Dict, Union, Optional, Tuple, TYPE_CHECKING, Callable
 from .scripts.checkIfPackageIsCompiled import compile_all_AOT_files
 
+import matplotlib.pyplot as plt
+
 if TYPE_CHECKING:
     # Important: classes are only imported when types are checked, not in production.
     from pandas import DataFrame
@@ -96,7 +98,7 @@ class AquaCropModel:
     _param_struct: "ParamStruct"
     _init_cond: "InitialCondition"
     _outputs: "Output"
-    _weather: "DataFrame"
+    _weather_df: "DataFrame"
 
     def __init__(
         self,
@@ -112,7 +114,6 @@ class AquaCropModel:
         groundwater: Optional["GroundWater"] = None,
         co2_concentration: Optional["CO2"] = None,
     ) -> None:
-
         self.sim_start_time = sim_start_time
         self.sim_end_time = sim_end_time
         self.weather_df = weather_df
@@ -127,8 +128,7 @@ class AquaCropModel:
         self.groundwater = groundwater
 
         if irrigation_management is None:
-            self.irrigation_management = IrrigationManagement(
-                irrigation_method=0)
+            self.irrigation_management = IrrigationManagement(irrigation_method=0)
         if field_management is None:
             self.field_management = FieldMngt()
         if fallow_field_management is None:
@@ -185,8 +185,7 @@ class AquaCropModel:
         """
         Check if weather dataframe is in a correct format.
         """
-        weather_df_columns = "Date MinTemp MaxTemp Precipitation ReferenceET".split(
-            " ")
+        weather_df_columns = "Date MinTemp MaxTemp Precipitation ReferenceET".split(" ")
         if not all([column in value for column in weather_df_columns]):
             raise ValueError(
                 "Error in weather_df format. Check if all the following columns exist "
@@ -205,9 +204,8 @@ class AquaCropModel:
             self.sim_start_time, self.sim_end_time
         )
 
-        # get _weather data
-        self.weather_df = read_weather_inputs(
-            self._clock_struct, self.weather_df)
+        # get _weather_df data
+        self.weather_df = read_weather_inputs(self._clock_struct, self.weather_df)
 
         # read model params
         self._clock_struct, self._param_struct = read_model_parameters(
@@ -243,11 +241,9 @@ class AquaCropModel:
         self._param_struct = create_soil_profile(self._param_struct)
 
         # Outputs results (water_flux, crop_growth, final_stats)
-        self._outputs = Output(
-            self._clock_struct.time_span, self._init_cond.th)
+        self._outputs = Output(self._clock_struct.time_span, self._init_cond.th)
 
-        # save model _weather to _init_cond
-        self._weather = self.weather_df.values
+       
 
     def run_model(
         self,
@@ -284,14 +280,17 @@ class AquaCropModel:
 
             while self._clock_struct.model_is_finished is False:
                 if controlled_variables_func is not None:
-                    (self._clock_struct,
-                    self._init_cond,
-                    self._param_struct,
-                    self._outputs) = controlled_variables_func(self._clock_struct,
-                                                    self._init_cond,
-                                                    self._param_struct,
-                                                    self._outputs,)
-
+                    (
+                        self._clock_struct,
+                        self._init_cond,
+                        self._param_struct,
+                        self._outputs,
+                    ) = controlled_variables_func(
+                        self._clock_struct,
+                        self._init_cond,
+                        self._param_struct,
+                        self._outputs,
+                    )
 
                 (
                     self._clock_struct,
@@ -305,11 +304,9 @@ class AquaCropModel:
             return True
         else:
             if num_steps < 1:
-                raise ValueError(
-                    "num_steps must be equal to or greater than 1.")
+                raise ValueError("num_steps must be equal to or greater than 1.")
             self.__start_model_execution = time.time()
             for i in range(num_steps):
-
                 if (i == range(num_steps)[-1]) and (process_outputs is True):
                     self.__steps_are_finished = True
 
@@ -338,9 +335,9 @@ class AquaCropModel:
         Function to run a single time-step (day) calculation of AquaCrop-OS
         """
 
-        # extract _weather data for current timestep
+        # extract _weather_df data for current timestep
         weather_step = _weather_data_current_timestep(
-            self._weather, self._clock_struct.time_step_counter
+            self._weather_df, self._clock_struct.time_step_counter
         )
 
         # Get model solution_single_time_step
@@ -365,7 +362,7 @@ class AquaCropModel:
 
         # Update time step
         clock_struct, _init_cond, param_struct = update_time(
-            clock_struct, new_cond, param_struct, self._weather
+            clock_struct, new_cond, param_struct, self._weather_df
         )
 
         # Create  _outputsdataframes when model is finished
@@ -413,7 +410,18 @@ class AquaCropModel:
                 "You cannot get results without running the model. "
                 + "Please execute the run_model() method."
             )
-
+        
+    def get_water_storage_chart(self, output_path: str = None):
+        """
+        Return water storage in soil results
+        """
+        water_storage_df = self.get_water_storage()
+        
+        # Create a figure with all water storage components
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.plot(water_storage_df['date'], water_storage_df['soil_moisture'], label='Soil moisture')
+        ax.plot(water_storage_df['date'], water_storage_df['soil_moisture_deficit'], label='Soil moisture deficit')
+        
     def get_water_flux(self):
         """
         Return water flux results
@@ -477,8 +485,17 @@ def _sim_date_format_is_correct(date: str) -> bool:
         return False
 
 
-def _weather_data_current_timestep(_weather, time_step_counter):
+def _weather_data_current_timestep(_weather_df, time_step_counter):
     """
-    Extract _weather data for current timestep
+    Extract _weather_df data for current timestep
     """
-    return _weather[time_step_counter]
+    weather_step = _weather_df.iloc[time_step_counter]
+
+    weather_dict = {
+        "Date": weather_step["Date"],
+        "MinTemp": weather_step["MinTemp"],
+        "MaxTemp": weather_step["MaxTemp"],
+        "Precipitation": weather_step["Precipitation"],
+        "ReferenceET": weather_step["ReferenceET"],
+    }
+    return weather_dict

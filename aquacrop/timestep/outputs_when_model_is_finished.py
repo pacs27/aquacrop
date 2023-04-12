@@ -66,7 +66,7 @@ def outputs_when_model_is_finished(
 
         water_output_df = pd.DataFrame(
             water_output,
-            columns=["time_step_counter", "growing_season", "dap"]
+            columns=["time_step_counter", "date", "growing_season", "dap"]
             + ["th" + str(i) for i in range(1, water_output.shape[1] - 2)],
         )
 

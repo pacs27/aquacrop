@@ -91,10 +91,10 @@ def solution_single_time_step(
     else:
         Groundwater = 0
 
-    precipitation = weather_step[2]
-    temp_max = weather_step[1]
-    temp_min = weather_step[0]
-    et0 = weather_step[3]
+    precipitation = weather_step["Precipitation"]
+    temp_max = weather_step["MaxTemp"]
+    temp_min = weather_step["MinTemp"]
+    et0 = weather_step["ReferenceET"]
 
     # Store initial conditions in structure for updating %%
     NewCond = init_cond
@@ -165,10 +165,10 @@ def solution_single_time_step(
 
     # save current timestep counter
     NewCond.time_step_counter = clock_struct.time_step_counter
-    NewCond.precipitation = weather_step[2]
-    NewCond.temp_max = weather_step[1]
-    NewCond.temp_min = weather_step[0]
-    NewCond.et0 = weather_step[3]
+    NewCond.precipitation = precipitation
+    NewCond.temp_max = temp_max
+    NewCond.temp_min = temp_min
+    NewCond.et0 = et0
 
     class_args = {
         key: value
@@ -477,10 +477,10 @@ def solution_single_time_step(
         NewCond.taw = _TAW.Rz
 
     # Water contents
-    outputs.water_storage[row_day, :3] = np.array(
-        [clock_struct.time_step_counter, growing_season, NewCond.dap]
+    outputs.water_storage[row_day, :4] = np.array(
+        [clock_struct.time_step_counter,clock_struct.current_simulation_date,  growing_season, NewCond.dap]
     )
-    outputs.water_storage[row_day, 3:] = NewCond.th
+    outputs.water_storage[row_day, 4:] = NewCond.th
 
     # Water fluxes
     outputs.water_flux[row_day, :] = [

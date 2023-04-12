@@ -42,5 +42,14 @@ def read_weather_inputs(
     # remove weather data outside of simulation dates
     weather_df = weather_df[weather_df.Date >= start_date]
     weather_df = weather_df[weather_df.Date <= end_date]
+    
+    # Fill missing days
+    weather_df = weather_df.set_index('Date')
+    ## delete duplicated dates
+    weather_df = weather_df[~weather_df.index.duplicated(keep='first')]
+    weather_df = weather_df.asfreq('D')
+    weather_df = weather_df.fillna(method='ffill')
+    weather_df = weather_df.reset_index()
+    
 
     return weather_df

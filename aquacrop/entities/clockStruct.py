@@ -11,6 +11,8 @@ class ClockStruct:
     Attributes:
 
         time_step_counter (int): Keeps track of current timestep
+        
+        current_simulation_date: The simulation date for the current time step. (YYYY-MM-DD)(Only for visual use)
 
         model_is_finished (Bool): False unless model has finished
 
