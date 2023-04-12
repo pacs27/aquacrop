@@ -94,20 +94,50 @@ weather = Weather(start_simulation_date=args.sim_start,
 weather_df = weather.get_weather_data_using_ria(start_year=2015, end_year=2019,
                                                 station_id="2", province_id=14, complete_data=True,
                                                 complete_type="last_n_years", complete_values_method="means")
-json_weather_data = weather_ria_stations.get_json_data(
-    province_id=14, station_id="2", initial_date=args.sim_start, end_date=args.sim_end, complete_data=True)
 
-weather_df = weather_ria_stations.get_weather_data()
-aquacrop_weather = weather_ria_stations.transform_data_into_aquacrop_format(
-    json_weather_data=json_weather_data)
+weather = Weather(
+            start_simulation_date=args.sim_start, end_simulation_date=args.sim_end
+        )
+
+start_year = 2000 # start year weather data
+end_year = 2022 # end year weather data
+station_id = "2" # station id
+province_id = 14 # province id
+complete_data = True # complete data
+complete_type = "last_n_years" # complete type
+complete_values_method = "driest_year" # complete values method
+lat_deg = 37.0 # latitude
+lon_deg = -4.0 # longitude
+altitude = 200.0 # altitude
+output_file_path = f"/Users/pacopuig/Desktop/PROGRAMACION/aquacrop_cameras/aquacrop_wrapper/data/output_{start_year}_{end_year}_{complete_values_method}.json"
+
+
+historical_weather = weather.get_weather_data_using_ria(
+    start_year=start_year,
+    end_year=end_year,
+    station_id=station_id,
+    province_id=province_id,
+    complete_data=complete_data,
+    complete_type=complete_type,
+    complete_values_method=complete_values_method
+)
+        
+forecast_weather = weather.get_forecast_for_the_next_5_days(
+            lat_degrees=lat_deg, lon_degrees=lon_deg, altitude=altitude
+        )
+historical_weather.set_index("Date", inplace=True)
+forecast_weather.set_index("Date", inplace=True)
+        
+historical_weather.update(forecast_weather)
+        
+historical_weather.reset_index(inplace=True)
 
 aquacrop = AquacropWrapper(sim_start=args.sim_start, sim_end=args.sim_end,
-                           weather=aquacrop_weather, soil=soil, crop=crop, irrigation=irrigation)
+                           weather=historical_weather, soil=soil, crop=crop, irrigation=irrigation)
 
 
 print(aquacrop.run(aquacrop_variables_controller=aquacrop_variables_controller))
 
-output_file_path = "/Users/pacopuig/Desktop/PROGRAMACION/aquacrop_cameras/aquacrop_wrapper/data/output.json"
 aquacrop.save_outputs(file_path=output_file_path)
 
 

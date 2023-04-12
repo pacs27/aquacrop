@@ -3,17 +3,14 @@ from ria import RIA
 import pandas as pd
 import datetime
 import copy
+
 # import statistics
 import pandas as pd
 
 try:
     from aquacrop_wrapper.constants import AquacropConstants
 except ImportError:
-    import sys
-    import os
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-    from aquacrop_wrapper.constants import AquacropConstants
-
+    from constants import AquacropConstants
 
 
 ria = RIA()
@@ -23,15 +20,22 @@ print(ria.listar_todas_estaciones_en_una_provincia(14))
 ria.obtener_datos_dia(14, 1, "2023-03-21")
 
 
-class WeatherRIAStations():
+class WeatherRIAStations:
     def __init__(self):
         self.ria = RIA()
 
-    def get_weather_df(self, start_simulation_date, end_simulation_date,  start_year,
-                       end_year, province_id, station_id,
-                       complete_type: AquacropConstants.COMPLETE_WEATHER_DATA_TYPE.keys(),
-                       complete_values_method: AquacropConstants.COMPLETE_WEATHER_DATA_METHOD.keys(),
-                       complete_data=False):
+    def get_weather_df(
+        self,
+        start_simulation_date,
+        end_simulation_date,
+        start_year,
+        end_year,
+        province_id,
+        station_id,
+        complete_type: AquacropConstants.COMPLETE_WEATHER_DATA_TYPE.keys(),
+        complete_values_method: AquacropConstants.COMPLETE_WEATHER_DATA_METHOD.keys(),
+        complete_data=False,
+    ):
         # TODO: CHECK IF THE WEATHER IS THE SAME AS THE COMPLETE ONE, IF ITS USE THE SAME DATA, IF NOT, CREATE TWO CALLS TO RIA WSTATIONS.
         # dIFFERENCIATE BETWEEN START_SIM_DATE AND WEATHER_START_DATES
         """Get weather data from RIA API
@@ -56,26 +60,44 @@ class WeatherRIAStations():
         end_simulation_day = end_simulation_date.replace("/", "-")
 
         json_weather_data = self.ria.obtener_datos_diarios_periodo_con_et0(
-            provincia_id=province_id, estacion_id=station_id,
-            fecha_inicio=initial_simulation_day, fecha_fin=end_simulation_day)
+            provincia_id=province_id,
+            estacion_id=station_id,
+            fecha_inicio=initial_simulation_day,
+            fecha_fin=end_simulation_day,
+        )
 
         weather_df = pd.DataFrame(json_weather_data)
+        
+        weather_df["fecha"] = weather_df["fecha"].apply(
+            lambda x: datetime.date(year=int(x[0:4]), month=int(x[5:7]), day=int(x[8:10]))
+        )
 
-        if (complete_data):
+        if complete_data:
             if not complete_type in AquacropConstants.COMPLETE_WEATHER_DATA_TYPE.keys():
                 raise ValueError(
-                    f"Complete type not valid. Valid values are: {AquacropConstants.COMPLETE_WEATHER_DATA_TYPE.keys()}")
+                    f"Complete type not valid. Valid values are: {AquacropConstants.COMPLETE_WEATHER_DATA_TYPE.keys()}"
+                )
 
             if complete_type == "last_year_data":
                 weather_df = self.complete_data_with_last_year(
-                    weather_df, province_id, station_id, end_simulation_date)
+                    weather_df, province_id, station_id, end_simulation_date
+                )
             elif complete_type == "last_n_years":
                 weather_df = self.complete_data_with_selected_years(
-                    start_year, end_year, weather_df, province_id, station_id, end_simulation_date, complete_values_method)
+                    start_year,
+                    end_year,
+                    weather_df,
+                    province_id,
+                    station_id,
+                    end_simulation_date,
+                    complete_values_method,
+                )
 
         return weather_df
 
-    def complete_data_with_last_year(self, weather_df, province_id, station_id, end_simulation_date):
+    def complete_data_with_last_year(
+        self, weather_df, province_id, station_id, end_simulation_date
+    ):
         """This method complete the weather data with the last year data.
 
         Args:
@@ -92,23 +114,26 @@ class WeatherRIAStations():
         last_year = today_date.year - 1
 
         weather_df_last_year = self.complete_data_with_selected_years(
-            start_year=last_year-1,
+            start_year=last_year - 1,
             end_year=last_year,
             weather_df=weather_df,
             province_id=province_id,
             station_id=station_id,
-            end_simulation_date=end_simulation_date)
+            end_simulation_date=end_simulation_date,
+        )
 
         return weather_df_last_year
 
-    def complete_data_with_selected_years(self,
-                                          start_year,
-                                          end_year,
-                                          weather_df,
-                                          province_id,
-                                          station_id,
-                                          end_simulation_date,
-                                          complete_values_method: AquacropConstants.COMPLETE_WEATHER_DATA_METHOD.keys()):
+    def complete_data_with_selected_years(
+        self,
+        start_year,
+        end_year,
+        weather_df,
+        province_id,
+        station_id,
+        end_simulation_date,
+        complete_values_method: AquacropConstants.COMPLETE_WEATHER_DATA_METHOD.keys(),
+    ):
         """This method is quite important. It complete the weather data with the last year data.
             When the simulation is running in future dates, the weather data, of course, is not available.
             It is necessary to complete the weather data with a selected year, so this method is used to complete the weather data.
@@ -128,24 +153,29 @@ class WeatherRIAStations():
         # check if year_of_the_weather_data AND today_date.year are the same or more
         if end_year >= today_date.year:
             raise Exception(
-                "The year of the weather data must be less than the current year")
+                "The year of the weather data must be less than the current year"
+            )
 
         # # CALCULATE THE DAYS UNTIL 31 OF DECEMBER FORM TODAY
         # days_to_end_the_year =  today_date - datetime.datetime(today_date.year, 12, 31)
 
         number_of_days_between_today_and_last_date = (
-            datetime.datetime.strptime(end_simulation_date, "%Y/%m/%d") - today_date).days
+            datetime.datetime.strptime(end_simulation_date, "%Y/%m/%d") - today_date
+        ).days
 
         historic_weather_df = self.get_weather_dataframe(
-            start_year=start_year, end_year=end_year, ria_province_id=province_id, ria_station_id=station_id, complete_values_method=complete_values_method)
+            start_year=start_year,
+            end_year=end_year,
+            ria_province_id=province_id,
+            ria_station_id=station_id,
+            complete_values_method=complete_values_method,
+        )
 
-       # CREATE LEAP YEAR AND NOT LEAP YEAR DATA TO USE IT IN ALL THE SUTUATIONS
+        # CREATE LEAP YEAR AND NOT LEAP YEAR DATA TO USE IT IN ALL THE SUTUATIONS
 
         # Leap year
-        if not self.check_if_a_year_is_leap(historic_weather_df["fecha"].iloc[0].year
-                                            ):
-            weather_df_leap = self._create_weather_df_with_29_2(
-                historic_weather_df)
+        if not self.check_if_a_year_is_leap(historic_weather_df["fecha"].iloc[0].year):
+            weather_df_leap = self._create_weather_df_with_29_2(historic_weather_df)
         else:
             weather_df_leap = historic_weather_df
 
@@ -154,7 +184,8 @@ class WeatherRIAStations():
             weather_df_no_leap = historic_weather_df
         else:
             weather_df_no_leap = self._remove_29_2_from_weather_data(
-                historic_weather_df)
+                historic_weather_df
+            )
 
         # iterate over all days between today and last date
         day_date = today_date
@@ -162,7 +193,7 @@ class WeatherRIAStations():
         # This for iterate over all the simulation days to create the weather dataframe using
         # last year weather data
         # TODO: This is too slow. It is necessary to improve this
-        for _ in range(0, number_of_days_between_today_and_last_date+2):
+        for _ in range(0, number_of_days_between_today_and_last_date + 2):
             # check if year is leap year to select the correct weather dataframe
             if self.check_if_a_year_is_leap(day_date.year):
                 weather_data_last_year = weather_df_leap
@@ -174,63 +205,82 @@ class WeatherRIAStations():
 
             # Copy to doesnt change the date value in the item
             weather_df_last_year_item = copy.deepcopy(
-                weather_data_last_year.loc[weather_data_last_year['dia'] == current_day_of_the_year])
-            # change the date
-            weather_df_last_year_item["fecha"] = pd.to_datetime(day_date)
+                weather_data_last_year.loc[
+                    weather_data_last_year["dia"] == current_day_of_the_year
+                ]
+            )
+            # Date with format YYYY-MM-DD 
+            
+            weather_df_last_year_item["fecha"] = datetime.date(day_date.year, day_date.month, day_date.day)
+            
 
             # adding days to the json weather date
             # weather_df.loc[len(weather_df)] = weather_df_last_year_item
-            weather_df = pd.concat([weather_df, weather_df_last_year_item], ignore_index=True)
+            weather_df = pd.concat(
+                [weather_df, weather_df_last_year_item], ignore_index=True
+            )
 
-            print(_)
             # Next day date
             day_date = day_date + datetime.timedelta(days=1)
 
         return weather_df
 
-    def get_weather_dataframe(self, start_year, end_year, ria_province_id, ria_station_id, complete_values_method):
+    def get_weather_dataframe(
+        self,
+        start_year,
+        end_year,
+        ria_province_id,
+        ria_station_id,
+        complete_values_method,
+    ):
         # start_date = f"{year_of_the_weather_data}-01-01"
         # end_date = f"{year_of_the_weather_data+1}-01-01"
         # end_year should be less than start_year
 
-        if not complete_values_method in AquacropConstants.COMPLETE_WEATHER_DATA_METHOD.keys():
+        if (
+            not complete_values_method
+            in AquacropConstants.COMPLETE_WEATHER_DATA_METHOD.keys()
+        ):
             raise Exception(
-                f"The complete_values_method must be one of the following: {AquacropConstants.COMPLETE_WEATHER_DATA_METHOD.keys()}")
+                f"The complete_values_method must be one of the following: {AquacropConstants.COMPLETE_WEATHER_DATA_METHOD.keys()}"
+            )
 
         today_date = datetime.datetime.now()
         if end_year <= start_year:
-            raise Exception(
-                "The end year must be less than the start year")
+            raise Exception("The end year must be less than the start year")
 
         # end year date should be less than today date
         if end_year >= today_date.year:
-            raise Exception(
-                "The end year must be less than the current year")
+            raise Exception("The end year must be less than the current year")
 
         json_weather_data_last_year = self.ria.obtener_datos_diarios_periodo_con_et0(
-            provincia_id=ria_province_id, estacion_id=ria_station_id,
-            fecha_inicio=f"{start_year}-01-01", fecha_fin=f"{end_year}-12-31")
+            provincia_id=ria_province_id,
+            estacion_id=ria_station_id,
+            fecha_inicio=f"{start_year}-01-01",
+            fecha_fin=f"{end_year}-12-31",
+        )
 
         # TODO: Is better to create a list of type: `weather_complete_type``
         weather_year_df = pd.DataFrame(json_weather_data_last_year)
+        
+        weather_year_df["fecha"] = weather_year_df["fecha"].apply(
+            lambda x: datetime.date(year=int(x[0:4]), month=int(x[5:7]), day=int(x[8:10]))
+        )
 
         if complete_values_method == "means":
-            weather_year_df = self.get_means_from_weather_data(
-                weather_year_df)
+            weather_year_df = self.get_means_from_weather_data(weather_year_df)
 
         elif complete_values_method == "driest_year":
-            weather_year_df = self.get_the_driest_year(
-                weather_year_df)
+            weather_year_df = self.get_the_driest_year(weather_year_df)
 
         elif complete_values_method == "rainest_year":
-            weather_year_df = self.get_the_driest_year(
-                weather_year_df)
+            weather_year_df = self.get_rainest_year(weather_year_df)
 
         return weather_year_df
 
     def get_means_from_weather_data(self, weather_year_df):
         """
-        This method take a dataframe, calculates the mean for each day of the year, 
+        This method take a dataframe, calculates the mean for each day of the year,
         and returns a dataframe with the mean values
 
         Args:
@@ -240,16 +290,23 @@ class WeatherRIAStations():
             pd.Dataframe: _description_
         """
 
-        # sum item where dia column is the same and get the mean. Preserve the fehca column
-        weather_df_dia_sum = weather_year_df.groupby(['dia']).mean()
+        # drop unnecessary columns
+        weather_year_df = weather_year_df.drop(
+            columns=["fecha", "horMinTempMax","horMinTempMin", 'fechaUtlMod', 'horMinHumMin',"horMinHumMin", "horMinHumMax", "horMinVelMax"]
+        )
+        # group items where dia column is the same and get the mean. Preserve the fecha column
+        weather_df_dia_mean = weather_year_df.groupby(["dia"]).mean()
 
         # create a date column with the day of the year taking into account the leap year
-        weather_df_dia_sum['fecha'] = weather_df_dia_sum.index.map(
-            lambda day: self.get_date_using_julian_day(day_of_the_year=day, is_year_leap=True))
+        weather_df_dia_mean["fecha"] = weather_df_dia_mean.index.map(
+            lambda day: self.get_date_using_julian_day(
+                day_of_the_year=day, is_year_leap=True
+            )
+        )
 
-        weather_df_dia_sum = weather_df_dia_sum.reset_index()
+        weather_df_dia_mean = weather_df_dia_mean.reset_index()
 
-        return weather_df_dia_sum
+        return weather_df_dia_mean
 
     def get_the_driest_year(self, weather_year_df):
         """This method take a dataframe, calculates the total irrigation for each  year, and selects the data of the driest year
@@ -260,24 +317,69 @@ class WeatherRIAStations():
         Returns:
             pd.Dataframe: The driest year weather dataframe
         """
-
-        weather_year_df['fecha'] = pd.to_datetime(weather_year_df['fecha'])
-
-        precipitation_df = weather_year_df.loc[:, ['precipitacion']]
+         # drop unnecessary columns
+        weather_year_df = weather_year_df.drop(
+            columns=[ "horMinTempMax","horMinTempMin", 'fechaUtlMod', 'horMinHumMin',"horMinHumMin", "horMinHumMax", "horMinVelMax"]
+        )
+        # group items where dia column is the same and get the mean. Preserve the fecha column
+        
+        weather_year_df["fecha"] = pd.to_datetime(weather_year_df["fecha"])
+         
+        precipitation_df = weather_year_df.loc[:, ["precipitacion"]]
 
         precipitation_df["year"] = weather_year_df["fecha"].apply(
-            lambda fecha: fecha.year)
+            lambda fecha: fecha.year
+        )
 
         precipitation_df = precipitation_df.groupby("year").sum()
 
-        driest_year = precipitation_df['precipitacion'].idxmin()
+        
+        driest_year = precipitation_df["precipitacion"].idxmin()
 
-        weather_filtered_df = weather_year_df[weather_year_df['fecha'].dt.year == driest_year]
+        weather_filtered_df = weather_year_df[
+            weather_year_df["fecha"].dt.year == driest_year
+        ]
+        
+        # Is leap year?
+        is_leap_year = self.check_if_a_year_is_leap(driest_year)
+
 
         weather_filtered_df = weather_filtered_df.reset_index()
+        
+        weather_filtered_df = self.add_missed_days_to_df(weather_filtered_df)
 
         return weather_filtered_df
 
+
+        # weather_year_df["fecha"] = pd.to_datetime(weather_year_df["fecha"])
+
+        # precipitation_df = weather_year_df.loc[:, ["precipitacion"]]
+
+        # precipitation_df["year"] = weather_year_df["fecha"].apply(
+        #     lambda fecha: fecha.year
+        # )
+
+        # precipitation_df = precipitation_df.groupby("year").sum()
+
+        # driest_year = precipitation_df["precipitacion"].idxmin()
+
+        # weather_filtered_df = weather_year_df[
+        #     weather_year_df["fecha"].dt.year == driest_year
+        # ]
+
+        # weather_filtered_df = weather_filtered_df.reset_index()
+
+        # return weather_filtered_df
+
+    def add_missed_days_to_df(self, weather_year_df):
+        # Fill missing days
+        weather_year_df = weather_year_df.set_index('fecha')
+        weather_year_df = weather_year_df.asfreq('D')
+        weather_year_df = weather_year_df.fillna(method='ffill')
+        weather_year_df = weather_year_df.reset_index()
+        
+        return weather_year_df
+    
     def get_rainest_year(self, weather_year_df):
         """This method take a dataframe, calculates the total irrigation for each  year, and selects the data of the driest year
 
@@ -288,18 +390,21 @@ class WeatherRIAStations():
             pd.Dataframe: _description_
         """
 
-        weather_year_df['fecha'] = pd.to_datetime(weather_year_df['fecha'])
+        weather_year_df["fecha"] = pd.to_datetime(weather_year_df["fecha"])
 
-        precipitation_df = weather_year_df.loc[:, ['precipitacion']]
+        precipitation_df = weather_year_df.loc[:, ["precipitacion"]]
 
         precipitation_df["year"] = weather_year_df["fecha"].apply(
-            lambda fecha: fecha.year)
+            lambda fecha: fecha.year
+        )
 
         precipitation_df = precipitation_df.groupby("year").sum()
 
-        driest_year = precipitation_df['precipitacion'].idxmax()
+        driest_year = precipitation_df["precipitacion"].idxmax()
 
-        weather_filtered_df = weather_year_df[weather_year_df['fecha'].dt.year == driest_year]
+        weather_filtered_df = weather_year_df[
+            weather_year_df["fecha"].dt.year == driest_year
+        ]
 
         weather_filtered_df = weather_filtered_df.reset_index()
 
@@ -320,12 +425,10 @@ class WeatherRIAStations():
         no_leap_year = 2019
         if is_year_leap:
             first_day_year_date = datetime.datetime(leap_year, 1, 1)
-            date = first_day_year_date + \
-                datetime.timedelta(day_of_the_year - 1)
+            date = first_day_year_date + datetime.timedelta(day_of_the_year - 1)
         else:
             first_day_year_date = datetime.datetime(no_leap_year, 1, 1)
-            date = first_day_year_date + \
-                datetime.timedelta(day_of_the_year - 1)
+            date = first_day_year_date + datetime.timedelta(day_of_the_year - 1)
 
         return date
 
@@ -338,16 +441,26 @@ class WeatherRIAStations():
         Returns:
             _type_: json file with the weatherdata
         """
-        year = weather_df['fecha'].dt.year.unique()[0]
+        leap_year = 2020
+        
+        # change year to 2020 to add 29-2
+        weather_df["fecha"] = weather_df["fecha"].apply(
+            lambda fecha: fecha.replace(year=leap_year)
+        )
 
-       # find 28-2 in json_weather_data_last_year
-        weather_df_28_2 = weather_df[weather_df['fecha'] == f"{year}-02-28"]
+        # find 28-2 in json_weather_data_last_year
+        weather_df_28_2 = weather_df[weather_df["fecha"] == f"{leap_year}-02-28"]
         # create 29-2
         weather_df_29_2 = weather_df_28_2.copy()
         # add weather_df_29_2 after 28-02 date
-        weather_df_29_2['fecha'] = f"{year}-02-29"
+        weather_df_29_2["fecha"] = pd.to_datetime(f"{leap_year}-02-29")
         # add 29-2 to json_weather_data_last_year
-        weather_df = weather_df.append(weather_df_29_2)
+                
+        # adding days to the json weather date
+        # weather_df.loc[len(weather_df)] = weather_df_last_year_item
+        weather_df = pd.concat(
+            [weather_df, weather_df_29_2], ignore_index=True
+        )
 
         weather_df = weather_df.reset_index(drop=True)
         weather_df.index = weather_df.index + 1
@@ -363,9 +476,10 @@ class WeatherRIAStations():
             _type_: json file with the weatherdata
         """
         # remove 29-2 from weather_df
-        year = weather_df['fecha'].dt.year.unique()[0]
-        weather_df = weather_df[weather_df['fecha']
-                                != f"{year}-02-29"].reset_index(drop=True)
+        year = weather_df["fecha"].dt.year.unique()[0]
+        weather_df = weather_df[weather_df["fecha"] != f"{year}-02-29"].reset_index(
+            drop=True
+        )
         weather_df.index = weather_df.index + 1
 
         return weather_df
@@ -391,42 +505,34 @@ class WeatherRIAStations():
             return False
 
     @staticmethod
-    def transform_data_into_aquacrop_format(json_weather_data):
-        """Transform json data into aquacrop format
+    def transform_dataframe_into_aquacrop_format(weather_df):
+        """Transform weather dataframe into aquacrop format
         Args:
-            json_weather_data (_type_): json file with the weatherdata
+            weather_df (pd.Dataframe): Dataframe with the weather data
 
         Returns:
             _type_: pandas dataframe with the weatherdata
         """
-        weather_df = pd.DataFrame(
-            json_weather_data,
-            columns=["fecha", "tempMin", "tempMax", "precipitation", "et0"],
-        )
 
-        weather_df["precipitation"] = weather_df["precipitation"].fillna(0.00)
+        aquacrop_weather_df = weather_df[
+            ["fecha", "tempMin", "tempMax", "precipitacion", "et0"]
+        ]
 
-        weather_df.rename(
+        aquacrop_weather_df.rename(
             columns={
+                "fecha": "Date",
                 "tempMin": "MinTemp",
                 "tempMax": "MaxTemp",
-                "precipitation": "Precipitation",
+                "precipitacion": "Precipitation",
                 "et0": "ReferenceET",
             },
             inplace=True,
         )
 
         # Set limit on ET0 to avoid divide by zero errors
-        weather_df.ReferenceET.clip(lower=0.1, inplace=True)
-
-        # Fill missing date values with the previous value
-        weather_df.index = pd.DatetimeIndex(weather_df["fecha"]).floor("D")
-        weather_df = weather_df.resample("D").mean().fillna(method="ffill")
-
-        # Create Date column
-        weather_df["Date"] = weather_df.index
+        aquacrop_weather_df.ReferenceET.clip(lower=0.1, inplace=True)
 
         # Change index from date to row number
-        weather_df.index = range(len(weather_df))
+        aquacrop_weather_df.index = range(len(aquacrop_weather_df))
 
-        return weather_df
+        return aquacrop_weather_df

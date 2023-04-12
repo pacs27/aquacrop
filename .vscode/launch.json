@@ -42,7 +42,7 @@
             "program": "${workspaceFolder}/aquacrop_wrapper/main.py",
             "args": [
                 "-sstart=2020/04/01",
-                "-send=2040/02/02",
+                "-send=2030/02/02",
                 "--test_mode",
                 "-stype=Loam",
                 "-crop=Wheat",
