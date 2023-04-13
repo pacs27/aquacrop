@@ -64,10 +64,13 @@ def outputs_when_model_is_finished(
             ],
         )
 
+        water_output_columns_first_columns = ["time_step_counter", "date", "growing_season", "dap"]
+        number_of_compartments = water_output.shape[1] - len(water_output_columns_first_columns)
+        compartments_columns = ["th" + str(i) for i in range(1, number_of_compartments+1)]
+        
         water_output_df = pd.DataFrame(
             water_output,
-            columns=["time_step_counter", "date", "growing_season", "dap"]
-            + ["th" + str(i) for i in range(1, water_output.shape[1] - 2)],
+            columns=water_output_columns_first_columns + compartments_columns,
         )
 
         growth_outputs_df = pd.DataFrame(

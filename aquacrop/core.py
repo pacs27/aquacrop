@@ -419,7 +419,7 @@ class AquaCropModel:
         
         # Create a figure with all water storage components
         fig, ax = plt.subplots(figsize=(10, 6))
-        ax.plot(water_storage_df['date'], water_storage_df['soil_moisture'], label='Soil moisture')
+        ax.plot(water_storage_df['date'], water_storage_df['gro'], label='Soil moisture')
         ax.plot(water_storage_df['date'], water_storage_df['soil_moisture_deficit'], label='Soil moisture deficit')
         
     def get_water_flux(self):

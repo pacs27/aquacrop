@@ -1,5 +1,8 @@
 import os
+import datetime
+
 import numpy as np
+
 
 from aquacrop.entities.output import Output
 
@@ -477,8 +480,10 @@ def solution_single_time_step(
         NewCond.taw = _TAW.Rz
 
     # Water contents
+    # INFO: second value in timestamp because the value has to be float
+    current_timestamp_value = datetime.datetime.combine(clock_struct.current_simulation_date, datetime.time.min).timestamp()
     outputs.water_storage[row_day, :4] = np.array(
-        [clock_struct.time_step_counter,clock_struct.current_simulation_date,  growing_season, NewCond.dap]
+        [clock_struct.time_step_counter,current_timestamp_value ,  growing_season, NewCond.dap]
     )
     outputs.water_storage[row_day, 4:] = NewCond.th
 

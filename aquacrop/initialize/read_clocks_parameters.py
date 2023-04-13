@@ -1,14 +1,15 @@
 """
 Inititalize clocks parameters
 """
+import datetime
+
 import pandas as pd
 from ..entities.clockStruct import ClockStruct
 
 
 def read_clock_paramaters(
-    sim_start_time: str,
-    sim_end_time: str,
-    off_season: bool = False) -> ClockStruct:
+    sim_start_time: str, sim_end_time: str, off_season: bool = False
+) -> ClockStruct:
     """
     Function to read in start and end simulaiton time and return a ClockStruct object
 
@@ -22,7 +23,7 @@ def read_clock_paramaters(
 
     Returns:
 
-        clock_sctruct (ClockStruct): simulation time paramaters
+        clock_struct (ClockStruct): simulation time paramaters
 
 
     """
@@ -33,28 +34,30 @@ def read_clock_paramaters(
     pandas_sim_end_time = pd.to_datetime(sim_end_time)
 
     # create ClockStruct object
-    clock_sctruct = ClockStruct()
+    clock_struct = ClockStruct()
 
     # Add variables
-    clock_sctruct.simulation_start_date = pandas_sim_start_time
-    clock_sctruct.simulation_end_date = pandas_sim_end_time
+    clock_struct.simulation_start_date = pandas_sim_start_time
+    clock_struct.simulation_end_date = pandas_sim_end_time
 
-    clock_sctruct.n_steps = (pandas_sim_end_time - pandas_sim_start_time).days + 1
-    clock_sctruct.time_span = pd.date_range(
+    clock_struct.n_steps = (pandas_sim_end_time - pandas_sim_start_time).days + 1
+    clock_struct.time_span = pd.date_range(
         freq="D", start=pandas_sim_start_time, end=pandas_sim_end_time
     )
 
-    clock_sctruct.step_start_time = clock_sctruct.time_span[0]
-    clock_sctruct.step_end_time = clock_sctruct.time_span[1]
+    clock_struct.step_start_time = clock_struct.time_span[0]
+    clock_struct.step_end_time = clock_struct.time_span[1]
 
-    clock_sctruct.sim_off_season = off_season
+    clock_struct.sim_off_season = off_season
 
-    return clock_sctruct
+    clock_struct.current_simulation_date = datetime.datetime.date(
+        clock_struct.simulation_start_date
+    ) + datetime.timedelta(days=clock_struct.time_step_counter)
+
+    return clock_struct
 
 
-def check_max_simulation_days(
-    sim_start_time: str,
-    sim_end_time: str):
+def check_max_simulation_days(sim_start_time: str, sim_end_time: str):
     """
     Check that the date range of the simulation is less than 580 years.
     In pandas this cannot happen due to the size of the variable
