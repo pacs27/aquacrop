@@ -24,7 +24,7 @@
             "env": {
               "DEVELOPMENT": "TRUE"
             }
-          },
+        },
         {
             "name": "MAC: Current File",
             "python": "${workspaceFolder}/venv/bin/python3",
