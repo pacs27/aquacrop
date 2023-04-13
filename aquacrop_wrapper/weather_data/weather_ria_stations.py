@@ -15,9 +15,6 @@ except ImportError:
 
 ria = RIA()
 
-print(ria.listar_todas_estaciones_en_una_provincia(14))
-
-ria.obtener_datos_dia(14, 1, "2023-03-21")
 
 
 class WeatherRIAStations:
