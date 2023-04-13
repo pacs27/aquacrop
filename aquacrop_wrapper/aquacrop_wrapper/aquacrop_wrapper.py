@@ -1,11 +1,18 @@
+
+from typing import TYPE_CHECKING
+import sys
+
+try:
+    from aquacrop_wrapper.config import AQUACROP_DIRECTORY_PATH
+except ImportError:
+    from config import AQUACROP_DIRECTORY_PATH
+    
+sys.path.append(
+    AQUACROP_DIRECTORY_PATH)
+
 from aquacrop import (
     AquaCropModel,
 )
-from typing import TYPE_CHECKING
-import sys
-sys.path.append(
-    '/Users/pacopuig/Desktop/PROGRAMACION/aquacrop_cameras/aquacrop_wrapper/aquacrop')
-
 if TYPE_CHECKING:
     from .crop_wrapper import WCrop
     from .irrigation_wrapper import WIrrigation
