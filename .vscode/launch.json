@@ -35,8 +35,28 @@
             "justMyCode": true
         },
         {
-            "name": "sim1",
+            "name": "M: sim1",
             "python": "${workspaceFolder}/venv/bin/python3",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/aquacrop_wrapper/main.py",
+            "args": [
+                "-sstart=2020/04/01",
+                "-send=2030/02/02",
+                "--test_mode",
+                "-stype=Loam",
+                "-crop=Wheat",
+                "-pdate=11/15",
+                "-iwc=FC",
+                "-imethod=rainfed",
+                "--simulation_types=normal_simulation"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "W: sim1",
+            "python": "${workspaceFolder}/venv/Scripts/python",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/aquacrop_wrapper/main.py",
