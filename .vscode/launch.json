@@ -26,6 +26,21 @@
             }
         },
         {
+            "name": "M: Test Simple AQ",
+            "python": "${workspaceFolder}/venv/bin/python",
+            "type": "python",
+            "request": "launch",
+            "module": "unittest",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "${workspaceFolder}/tests/test_aquacrop.py",
+               ],
+            "env": {
+              "DEVELOPMENT": "TRUE"
+            }
+        },
+        {
             "name": "MAC: Current File",
             "python": "${workspaceFolder}/venv/bin/python3",
             "type": "python",
