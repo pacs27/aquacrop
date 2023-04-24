@@ -50,7 +50,7 @@
             "justMyCode": true
         },
         {
-            "name": "M: sim1",
+            "name": "M: long sim1",
             "python": "${workspaceFolder}/venv/bin/python3",
             "type": "python",
             "request": "launch",
@@ -70,7 +70,27 @@
             "justMyCode": true
         },
         {
-            "name": "W: sim1",
+            "name": "M: short sim1",
+            "python": "${workspaceFolder}/venv/bin/python3",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/aquacrop_wrapper/main.py",
+            "args": [
+                "-sstart=2022/04/01",
+                "-send=2023/08/01",
+                "--test_mode",
+                "-stype=ClayLoam",
+                "-crop=Wheat",
+                "-pdate=11/15",
+                "-iwc=FC",
+                "-imethod=rainfed",
+                "--simulation_types=normal_simulation"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "W: long sim1",
             "python": "${workspaceFolder}/venv/Scripts/python",
             "type": "python",
             "request": "launch",
