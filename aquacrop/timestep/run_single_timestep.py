@@ -490,6 +490,7 @@ def solution_single_time_step(
     # Water fluxes
     outputs.water_flux[row_day, :] = [
         clock_struct.time_step_counter,
+        current_timestamp_value,
         clock_struct.season_counter,
         NewCond.dap,
         Wr,
@@ -510,6 +511,7 @@ def solution_single_time_step(
     # Crop growth
     outputs.crop_growth[row_day, :] = [
         clock_struct.time_step_counter,
+        current_timestamp_value,
         clock_struct.season_counter,
         NewCond.dap,
         gdd,

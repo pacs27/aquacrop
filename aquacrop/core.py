@@ -5,7 +5,19 @@ import time
 import datetime
 import os
 import logging
-from typing import Dict, Union, Optional, Tuple, TYPE_CHECKING, Callable
+
+import pandas as pd
+
+from typing import (
+    Dict,
+    Union,
+    Optional,
+    Tuple,
+    TYPE_CHECKING,
+    Callable,
+    Literal,
+    get_args,
+)
 from .scripts.checkIfPackageIsCompiled import compile_all_AOT_files
 
 import matplotlib.pyplot as plt
@@ -243,8 +255,6 @@ class AquaCropModel:
         # Outputs results (water_flux, crop_growth, final_stats)
         self._outputs = Output(self._clock_struct.time_span, self._init_cond.th)
 
-       
-
     def run_model(
         self,
         num_steps: int = 1,
@@ -410,18 +420,96 @@ class AquaCropModel:
                 "You cannot get results without running the model. "
                 + "Please execute the run_model() method."
             )
-        
-    def get_water_storage_chart(self, output_path: str = None):
+
+    def get_water_storage_chart(
+        self,
+        multiples_plots_joined: bool = False,
+        show_chart: bool = True,
+        save_chart: bool = False,
+        save_path: str = None,
+    ):
         """
         Return water storage in soil results
+        TODO: It is a good idea to have a config files with column names
         """
+
+        if save_chart and save_path is None:
+            raise ValueError("You must provide a path to save the chart")
+
         water_storage_df = self.get_water_storage()
-        
-        # Create a figure with all water storage components
-        fig, ax = plt.subplots(figsize=(10, 6))
-        ax.plot(water_storage_df['date'], water_storage_df['gro'], label='Soil moisture')
-        ax.plot(water_storage_df['date'], water_storage_df['soil_moisture_deficit'], label='Soil moisture deficit')
-        
+
+        # delete rows where not in growing season
+        water_storage_df = water_storage_df[water_storage_df["growing_season"] == 1]
+
+        water_storage_columns = water_storage_df.columns
+
+        th_columns = [column for column in water_storage_columns if "th" in column]
+        # create two charts, one with all water storage columns and one with only th columns
+
+        date_formated = water_storage_df["date"].apply(
+            lambda x: datetime.datetime.fromtimestamp(x)
+        )
+
+        size_soil_layers = self._param_struct.Soil.dz
+        depth_each_layer = [
+            round(sum(size_soil_layers[: i + 1]), 2)
+            for i in range(len(size_soil_layers))
+        ]
+
+        if multiples_plots_joined:
+            columns = 2
+
+            rows = int(len(th_columns) / columns)
+
+            fig, axs = plt.subplots(
+                nrows=rows,
+                ncols=columns,
+                sharey=True,
+                layout="constrained",
+                figsize=(7, 10),
+            )
+
+            # for with int index for th_columns
+            for index in range(len(th_columns)):
+                # calculate column number using index and number of columns
+                column_number = int(index % columns)
+                # calculate row number using index and number of columns
+                row_number = int(index / columns)
+
+                axs[row_number, column_number].plot(
+                    date_formated, water_storage_df[th_columns[index]]
+                )
+
+                # Title
+                axs[row_number, column_number].set_title(
+                    f"{th_columns[index]} - {depth_each_layer[index]} m"
+                )
+
+            fig.tight_layout()
+
+        else:
+            fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(12, 6))
+            index = 0
+            for column in th_columns:
+                # date from millisecond to datetime
+                ax1.plot(
+                    date_formated,
+                    water_storage_df[column],
+                    label=f"{column} - {depth_each_layer[index]} m",
+                )
+                index += 1
+
+            ax1.set_xlabel("Date")
+            ax1.set_ylabel("Water storage (mm)")
+            # Add legend
+            ax1.legend()
+
+        if show_chart:
+            plt.show()
+
+        if save_chart:
+            fig.savefig(save_path)
+
     def get_water_flux(self):
         """
         Return water flux results
@@ -434,6 +522,150 @@ class AquaCropModel:
                 + "Please execute the run_model() method."
             )
 
+    WATER_FLUX_OPTIONS = Literal[
+        "dap",
+        "Wr",
+        "z_gw",
+        "surface_storage",
+        "IrrDay",
+        "Infl",
+        "Runoff",
+        "DeepPerc",
+        "CR",
+        "GwIn",
+        "Es",
+        "EsPot",
+        "Tr",
+        "TrPot",
+    ]
+
+    def get_water_flux_chart(
+        self,
+        single_plot: Literal[WATER_FLUX_OPTIONS] = False,  # Just one plot
+        multiples_plots_joined: bool = False,  # all plots in the same fig
+        multiples_plots_splited: bool = False,  # each plot in a different fig
+        show_chart: bool = True,
+        save_chart: bool = False,
+        save_path: str = None,
+    ):
+        """
+        Return water storage in soil results
+        TODO: It is a good idea to have a config files with column names
+        """
+
+        water_flux = self._outputs.water_flux
+
+        # delete rows where not dap
+        water_flux = water_flux[water_flux["dap"] != 0]
+
+        date_formated = water_flux["date"].apply(
+            lambda x: datetime.datetime.fromtimestamp(x)
+        )
+
+        class StructItemForChart:
+            def __init__(self, id, title, unit):
+                self.id = id
+                self.title = title
+                self.unit = unit
+
+        dap_chart = StructItemForChart(id="dap", title="DAP", unit="DAP")
+        wr_chart = StructItemForChart(id="Wr", title="Soil Water Content", unit="mm")
+        z_gw_chart = StructItemForChart(id="z_gw", title="Groundwater Depth", unit="m")
+        surface_storage_chart = StructItemForChart(
+            id="surface_storage", title="Surface Storage", unit="mm"
+        )
+        irrDay_chart = StructItemForChart(id="IrrDay", title="Irrigation", unit="mm")
+        infl_chart = StructItemForChart(id="Infl", title="Infiltration", unit="mm")
+        runoff_chart = StructItemForChart(id="Runoff", title="Runoff", unit="mm")
+        deepPerc_chart = StructItemForChart(
+            id="DeepPerc", title="Deep Percolation", unit="mm"
+        )
+        cr_chart = StructItemForChart(id="CR", title="Capilarity Rise", unit="mm")
+        gwIn_chart = StructItemForChart(
+            id="GwIn", title="Groundwater Inflow", unit="mm"
+        )
+        es_chart = StructItemForChart(id="Es", title="Surface evaporation", unit="mm")
+        esPot_chart = StructItemForChart(
+            id="EsPot", title="Potential surface evaporation", unit="mm"
+        )
+        tr_chart = StructItemForChart(id="Tr", title="Transpiration", unit="mm")
+        trPot_chart = StructItemForChart(
+            id="TrPot", title="Potential Transpiration", unit="mm"
+        )
+
+        charts = [
+            dap_chart,
+            wr_chart,
+            z_gw_chart,
+            surface_storage_chart,
+            irrDay_chart,
+            infl_chart,
+            runoff_chart,
+            deepPerc_chart,
+            cr_chart,
+            gwIn_chart,
+            es_chart,
+            esPot_chart,
+            tr_chart,
+            trPot_chart,
+        ]
+        if single_plot:
+            if not single_plot in get_args(self.WATER_FLUX_OPTIONS):
+                raise ValueError(
+                    f"Invalid option {single_plot}, please choose one of {self.WATER_FLUX_OPTIONS}"
+                )
+
+            # select chart where id is equal to single_plot
+            chart = next((chart for chart in charts if chart.id == single_plot), None)
+
+            fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(12, 6))
+            ax1.plot(date_formated, water_flux[chart.id], label=chart.title)
+            # TODO: IFINISH THID
+            ax1.set_xlabel("Date")
+            ax1.set_ylabel(f"{chart.title} ({chart.unit})")
+            # Add legend
+            ax1.legend()
+
+        elif multiples_plots_joined:
+            columns = 2
+            rows = int(len(charts) / columns)
+
+            fig, axs = plt.subplots(
+                nrows=rows, ncols=columns, layout="constrained", figsize=(7, 10)
+            )
+
+            for index in range(len(charts)):
+                column_number = int(index % columns)
+                row_number = int(index / columns)
+
+                axs[row_number, column_number].plot(
+                    date_formated, water_flux[charts[index].id]
+                )
+                axs[row_number, column_number].set_title(charts[index].title)
+
+            fig.tight_layout()
+
+        elif multiples_plots_splited:
+            fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(12, 6))
+            for chart in charts:
+                ax1.plot(date_formated, water_flux[chart.id], label=chart.title)
+            # TODO: FINISH THIS
+            ax1.set_xlabel("Date")
+            ax1.set_ylabel("Water storage (mm)")
+            # Add legend
+            ax1.legend()
+
+        else:
+            raise ValueError("Please choose one of the options")
+
+        if show_chart:
+            plt.show()
+
+        if save_chart:
+            fig.savefig(save_path)
+
+        print("done")
+
     def get_crop_growth(self):
         """
         Return crop growth results
@@ -445,6 +677,266 @@ class AquaCropModel:
                 "You cannot get results without running the model. "
                 + "Please execute the run_model() method."
             )
+
+    CROP_GROWTH_OPTIONS = Literal[
+        "dap",
+        "gdd",
+        "gdd_cum",
+        "z_root",
+        "canopy_cover",
+        "canopy_cover_ns",
+        "biomass",
+        "biomass_ns",
+        "harvest_index",
+        "harvest_index_adj",
+        "yield_",
+    ]
+
+    CROP_GROWTH_OPTIONS = Literal[
+        "dap",
+        "gdd",
+        "gdd_cum",
+        "z_root",
+        "canopy_cover",
+        "canopy_cover_ns",
+        "biomass",
+        "biomass_ns",
+        "harvest_index",
+        "harvest_index_adj",
+        "yield_",
+    ]
+
+    def get_crop_growth_chart(
+        self,
+        single_plot: Literal[WATER_FLUX_OPTIONS] = False,  # Just one plot
+        multiples_plots_joined: bool = False,  # all plots in the same fig
+        multiples_plots_splited: bool = False,  # each plot in a different fig
+        show_chart: bool = True,
+        save_chart: bool = False,
+        save_path: str = None,
+    ):
+        """
+        Return water storage in soil results
+        TODO: It is a good idea to have a config files with column names
+        """
+
+        crop_growth = self._outputs.crop_growth
+
+        # delete rows where not dap
+        crop_growth = crop_growth[crop_growth["dap"] != 0]
+
+        date_formated = crop_growth["date"].apply(
+            lambda x: datetime.datetime.fromtimestamp(x)
+        )
+
+        class StructItemForChart:
+            def __init__(self, id, title, unit):
+                self.id = id
+                self.title = title
+                self.unit = unit
+
+        dap_chart = StructItemForChart(id="dap", title="DAP", unit="DAP")
+        gdd_chart = StructItemForChart(
+            id="gdd", title="growing degree-days", unit="days"
+        )
+        gdd_cum_chart = StructItemForChart(
+            id="gdd_cum", title="growing degree-day cum", unit="days"
+        )
+        z_root_chart = StructItemForChart(id="z_root", title="Roots depth", unit="mm")
+        canopy_cover_chart = StructItemForChart(
+            id="canopy_cover", title="Canopy Cover", unit="%"
+        )
+        canopy_cover_ns_chart = StructItemForChart(
+            id="canopy_cover_ns", title="Canopy Cover Not Stressed", unit="mm"
+        )
+        biomass_chart = StructItemForChart(id="biomass", title="Biomass", unit="kg/ha")
+        biomass_ns_chart = StructItemForChart(
+            id="biomass_ns", title="Biomass Not Stressed", unit="kg/ha"
+        )
+        harvest_index_chart = StructItemForChart(
+            id="harvest_index", title="Harvest Index", unit=""
+        )
+        harvest_index_adj_chart = StructItemForChart(
+            id="harvest_index_adj", title="Harvest Index Adjusted", unit=""
+        )
+        yield_chart = StructItemForChart(id="yield_", title="Yield", unit="kg/ha")
+
+        charts = [
+            dap_chart,
+            gdd_chart,
+            gdd_cum_chart,
+            z_root_chart,
+            canopy_cover_chart,
+            canopy_cover_ns_chart,
+            biomass_chart,
+            biomass_ns_chart,
+            harvest_index_chart,
+            harvest_index_adj_chart,
+            yield_chart,
+        ]
+
+        if single_plot:
+            if not single_plot in get_args(self.CROP_GROWTH_OPTIONS):
+                raise ValueError(
+                    f"Invalid option {single_plot}, please choose one of {self.CROP_GROWTH_OPTIONS}"
+                )
+
+            # select chart where id is equal to single_plot
+            chart = next((chart for chart in charts if chart.id == single_plot), None)
+
+            fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(12, 6))
+            ax1.plot(date_formated, crop_growth[chart.id], label=chart.title)
+            # TODO: IFINISH THID
+            ax1.set_xlabel("Date")
+            ax1.set_ylabel(f"{chart.title} ({chart.unit})")
+            # Add legend
+            ax1.legend()
+
+        elif multiples_plots_joined:
+            columns = 2
+            rows = int(round(len(charts) / columns, 0))
+
+            fig, axs = plt.subplots(
+                nrows=rows, ncols=columns, layout="constrained", figsize=(7, 10)
+            )
+
+            for index in range(len(charts)):
+                column_number = int(index % columns)
+                row_number = int(index / columns)
+
+                axs[row_number, column_number].plot(
+                    date_formated, crop_growth[charts[index].id]
+                )
+                axs[row_number, column_number].set_title(charts[index].title)
+
+            fig.tight_layout()
+
+        elif multiples_plots_splited:
+            fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(12, 6))
+            for chart in charts:
+                ax1.plot(date_formated, crop_growth[chart.id], label=chart.title)
+            # TODO: FINISH THIS
+            ax1.set_xlabel("Date")
+            ax1.set_ylabel("Water storage (mm)")
+            # Add legend
+            ax1.legend()
+
+        else:
+            raise ValueError("Please choose one of the options")
+
+        if show_chart:
+            plt.show()
+
+        if save_chart:
+            fig.savefig(save_path)
+
+        print("done")
+
+    WEATHER_DATA_OPTIONS = Literal[
+        "Date", "MinTem", "MaxTemp", "Precipitation", "ReferenceET"
+    ]
+
+    def get_weather_chart(
+        self,
+        single_plot: Literal[WEATHER_DATA_OPTIONS] = False,  # Just one plot
+        multiples_plots_joined: bool = False,  # all plots in the same fig
+        multiples_plots_splited: bool = False,  # each plot in a different fig
+        show_chart: bool = True,
+        save_chart: bool = False,
+        save_path: str = None,
+    ):
+        """
+        Return weather results
+        """
+
+        weather_df = self._weather_df
+
+        date_formated = weather_df["Date"].apply(
+            lambda x: datetime.datetime.fromtimestamp(x)
+        )
+
+        class StructItemForChart:
+            def __init__(self, id, title, unit):
+                self.id = id
+                self.title = title
+                self.unit = unit
+
+        min_temp_chart = StructItemForChart(
+            id="MinTemp", title="Min Temperature", unit="ºC"
+        )
+        max_temp_chart = StructItemForChart(
+            id="MaxTemp", title="Max Temperature", unit="ºC"
+        )
+        precipitation_chart = StructItemForChart(
+            id="Precipitation", title="Precipitation", unit="mm"
+        )
+        reference_et_chart = StructItemForChart(
+            id="ReferenceET", title="Reference Evapotranspiration", unit="mm"
+        )
+
+        charts = [
+            min_temp_chart,
+            max_temp_chart,
+            precipitation_chart,
+            reference_et_chart,
+        ]
+
+        if single_plot:
+            if not single_plot in get_args(self.WEATHER_DATA_OPTIONS):
+                raise ValueError(
+                    f"Invalid option {single_plot}, please choose one of {self.WEATHER_DATA_OPTIONS}"
+                )
+
+            # select chart where id is equal to single_plot
+            chart = next((chart for chart in charts if chart.id == single_plot), None)
+
+            fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(12, 6))
+            ax1.plot(date_formated, weather_df[chart.id], label=chart.title)
+            # TODO: IFINISH THID
+            ax1.set_xlabel("Date")
+            ax1.set_ylabel(f"{chart.title} ({chart.unit})")
+            # Add legend
+            ax1.legend()
+
+        elif multiples_plots_joined:
+            columns = 2
+            rows = int(round(len(charts) / columns, 0))
+
+            fig, axs = plt.subplots(
+                nrows=rows, ncols=columns, layout="constrained", figsize=(7, 10)
+            )
+
+            for index in range(len(charts)):
+                column_number = int(index % columns)
+                row_number = int(index / columns)
+
+                axs[row_number, column_number].plot(
+                    date_formated, weather_df[charts[index].id]
+                )
+                axs[row_number, column_number].set_title(charts[index].title)
+
+            fig.tight_layout()
+
+        elif multiples_plots_splited:
+            fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(12, 6))
+            for chart in charts:
+                ax1.plot(date_formated, weather_df[chart.id], label=chart.title)
+            # TODO: FINISH THIS
+            ax1.set_xlabel("Date")
+            ax1.set_ylabel("Water storage (mm)")
+            # Add legend
+            ax1.legend()
+
+        else:
+            raise ValueError("Please choose one of the options")
+
+        if show_chart:
+            plt.show()
+
+        if save_chart:
+            fig.savefig(save_path)
+
+        print("done")
 
     def get_additional_information(self) -> Dict[str, Union[bool, float]]:
         """

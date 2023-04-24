@@ -46,9 +46,10 @@ def outputs_when_model_is_finished(
             flux_output,
             columns=[
                 "time_step_counter",
+                "date",
                 "season_counter",
                 "dap",
-                "Wr",
+                "Wr", # Soil water content in the root zone expressed as an equivalent depth mm.
                 "z_gw",
                 "surface_storage",
                 "IrrDay",
@@ -77,6 +78,7 @@ def outputs_when_model_is_finished(
             growth_outputs,
             columns=[
                 "time_step_counter",
+                "date",
                 "season_counter",
                 "dap",
                 "gdd",

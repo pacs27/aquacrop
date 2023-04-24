@@ -26,7 +26,7 @@ class Soil:
     def __init__(
         self,
         soil_type,
-        dz=[0.1] * 12,
+        dz=[0.1] * 12, # Thickness of soil layers (m) (12 layers)
         adj_rew=1,
         rew=9.0,
         calc_cn=0,
@@ -47,7 +47,7 @@ class Soil:
     ):
 
         self.Name = soil_type
-
+        self.dz = dz  # Thickness of soil layers (m) (X layers)
         self.zSoil = sum(dz)  # Total thickness of soil profile (m)
         self.nComp = len(dz)  # Total number of soil compartments
         self.nLayer = 0  # Total number of soil layers
