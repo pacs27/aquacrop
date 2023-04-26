@@ -4,3 +4,6 @@
 [submodule "aquacrop_wrapper/aquacrop"]
 	path = aquacrop_wrapper/aquacrop
 	url = https://github.com/pacs27/aquacrop.git
+[submodule "aquacrop_wrapper/own_utils_py"]
+	path = aquacrop_wrapper/own_utils_py
+	url = https://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@github.com/pacs27/own_utils_py.git
