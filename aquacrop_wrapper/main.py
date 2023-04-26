@@ -1,3 +1,4 @@
+import os
 import argparse
 import datetime
 
@@ -145,7 +146,10 @@ complete_values_method = "driest_year"  # complete values method (rainest_year, 
 lat_deg = 37.0  # latitude
 lon_deg = -4.0  # longitude
 altitude = 200.0  # altitude
-output_file_path = f"/Users/pacopuig/Desktop/PROGRAMACION/aquacrop_cameras/aquacrop_wrapper/data/output_{start_year}_{end_year}_{complete_values_method}.json"
+
+OUTPUT_FOLDER_ENV = os.environ.get("OUTPUT_FOLDER")
+
+output_file_path = f"{OUTPUT_FOLDER_ENV}/output_{start_year}_{end_year}_{complete_values_method}.json"
 
 # julian_harvest_date = datetime.datetime.strptime(harvest_date, "%m-%d").timetuple().tm_yday
 
@@ -216,43 +220,44 @@ aquacrop2 = AquacropWrapper(
     irrigation=irrigation2,
 )
 aquacrop.run(aquacrop_variables_controller=aquacrop_variables_controller)
-aquacrop2.run(aquacrop_variables_controller=aquacrop_variables_controller)
-crop_growth_rainfed = aquacrop.model.get_crop_growth()
-crop_growth_irrigated = aquacrop2.model.get_crop_growth()
 
-# drop time_step_counter == 0
-crop_growth_rainfed = crop_growth_rainfed[crop_growth_rainfed["time_step_counter"] != 0]
-crop_growth_irrigated = crop_growth_irrigated[crop_growth_irrigated["time_step_counter"] != 0]
+# aquacrop2.run(aquacrop_variables_controller=aquacrop_variables_controller)
+# crop_growth_rainfed = aquacrop.model.get_crop_growth()
+# crop_growth_irrigated = aquacrop2.model.get_crop_growth()
 
-canopy_cover_rainfed = crop_growth_rainfed["canopy_cover"]
-canopy_cover_irrigated = crop_growth_irrigated["canopy_cover"]
+# # drop time_step_counter == 0
+# crop_growth_rainfed = crop_growth_rainfed[crop_growth_rainfed["time_step_counter"] != 0]
+# crop_growth_irrigated = crop_growth_irrigated[crop_growth_irrigated["time_step_counter"] != 0]
 
-date_formated_rainfed = crop_growth_rainfed["date"].apply(
-            lambda x: datetime.datetime.fromtimestamp(x)
-        )
-date_formated_irrigated = crop_growth_irrigated["date"].apply(
+# canopy_cover_rainfed = crop_growth_rainfed["canopy_cover"]
+# canopy_cover_irrigated = crop_growth_irrigated["canopy_cover"]
 
-            lambda x: datetime.datetime.fromtimestamp(x)
-        )
+# date_formated_rainfed = crop_growth_rainfed["date"].apply(
+#             lambda x: datetime.datetime.fromtimestamp(x)
+#         )
+# date_formated_irrigated = crop_growth_irrigated["date"].apply(
 
-irrigation = aquacrop2.model.get_water_flux()["IrrDay"]
+#             lambda x: datetime.datetime.fromtimestamp(x)
+#         )
 
-fig, ax = plt.subplots()
-ax.plot(date_formated_rainfed,canopy_cover_rainfed, label="rainfed", linestyle="--", color="red")
-ax.plot(date_formated_irrigated,canopy_cover_irrigated, label="irrigated", linestyle="-", color="green")
+# irrigation = aquacrop2.model.get_water_flux()["IrrDay"]
+
+# fig, ax = plt.subplots()
+# ax.plot(date_formated_rainfed,canopy_cover_rainfed, label="rainfed", linestyle="--", color="red")
+# ax.plot(date_formated_irrigated,canopy_cover_irrigated, label="irrigated", linestyle="-", color="green")
 
 
-ax.set_xlabel("Days")
-ax.set_ylabel("Canopy cover")
-ax.legend()
+# ax.set_xlabel("Days")
+# ax.set_ylabel("Canopy cover")
+# ax.legend()
 
 # delete until this
 
-print(aquacrop.run(aquacrop_variables_controller=aquacrop_variables_controller))
+# print(aquacrop.run(aquacrop_variables_controller=aquacrop_variables_controller))
 
-print(aquacrop.get_simulation_results())
+# print(aquacrop.get_simulation_results())
 
-aquacrop.show_charts()
+# aquacrop.show_charts()
 
 aquacrop.save_outputs(file_path=output_file_path)
 
