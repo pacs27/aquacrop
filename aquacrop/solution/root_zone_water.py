@@ -78,7 +78,6 @@ def root_zone_water(
 
 
     """
-
     ## Calculate root zone water content and available water ##
     # Compartments covered by the root zone
     rootdepth = round(np.maximum(InitCond_Zroot, Crop_Zmin), 2)

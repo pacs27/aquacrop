@@ -51,5 +51,7 @@ def read_weather_inputs(
     weather_df = weather_df.fillna(method='ffill')
     weather_df = weather_df.reset_index()
     
+    # weather_df["Precipitation"] = 0
+    
 
     return weather_df

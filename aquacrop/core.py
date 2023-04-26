@@ -692,20 +692,6 @@ class AquaCropModel:
         "yield_",
     ]
 
-    CROP_GROWTH_OPTIONS = Literal[
-        "dap",
-        "gdd",
-        "gdd_cum",
-        "z_root",
-        "canopy_cover",
-        "canopy_cover_ns",
-        "biomass",
-        "biomass_ns",
-        "harvest_index",
-        "harvest_index_adj",
-        "yield_",
-    ]
-
     def get_crop_growth_chart(
         self,
         single_plot: Literal[WATER_FLUX_OPTIONS] = False,  # Just one plot
@@ -849,11 +835,12 @@ class AquaCropModel:
         Return weather results
         """
 
+
         weather_df = self._weather_df
 
-        date_formated = weather_df["Date"].apply(
-            lambda x: datetime.datetime.fromtimestamp(x)
-        )
+        # date_formated = weather_df["Date"].apply(
+        #     lambda x: datetime.datetime.fromtimestamp(x)
+        # )
 
         class StructItemForChart:
             def __init__(self, id, title, unit):
@@ -891,7 +878,7 @@ class AquaCropModel:
             chart = next((chart for chart in charts if chart.id == single_plot), None)
 
             fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(12, 6))
-            ax1.plot(date_formated, weather_df[chart.id], label=chart.title)
+            ax1.plot(weather_df["Date"], weather_df[chart.id], label=chart.title)
             # TODO: IFINISH THID
             ax1.set_xlabel("Date")
             ax1.set_ylabel(f"{chart.title} ({chart.unit})")
@@ -911,7 +898,7 @@ class AquaCropModel:
                 row_number = int(index / columns)
 
                 axs[row_number, column_number].plot(
-                    date_formated, weather_df[charts[index].id]
+                    weather_df["Date"], weather_df[charts[index].id]
                 )
                 axs[row_number, column_number].set_title(charts[index].title)
 
@@ -920,7 +907,7 @@ class AquaCropModel:
         elif multiples_plots_splited:
             fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(12, 6))
             for chart in charts:
-                ax1.plot(date_formated, weather_df[chart.id], label=chart.title)
+                ax1.plot(weather_df["Date"], weather_df[chart.id], label=chart.title)
             # TODO: FINISH THIS
             ax1.set_xlabel("Date")
             ax1.set_ylabel("Water storage (mm)")
