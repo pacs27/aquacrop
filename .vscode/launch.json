@@ -76,17 +76,21 @@
             "request": "launch",
             "program": "${workspaceFolder}/aquacrop_wrapper/main.py",
             "args": [
-                "-sstart=2022/04/01",
+                "-sstart=2023/01/01",
                 "-send=2023/08/01",
                 "--test_mode",
                 "-stype=ClayLoam",
                 "-crop=Wheat",
-                "-pdate=11/15",
+                "-pdate=1/8",
                 "-iwc=FC",
                 "-imethod=rainfed",
+                "--soil_moisture_targets=100",
                 "--simulation_types=normal_simulation"
             ],
             "console": "integratedTerminal",
+            "env": {
+                "DEVELOPMENT": "TRUE"
+              },
             "justMyCode": true
         },
         {

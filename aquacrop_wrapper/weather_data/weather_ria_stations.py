@@ -16,7 +16,6 @@ except ImportError:
 ria = RIA()
 
 
-
 class WeatherRIAStations:
     def __init__(self):
         self.ria = RIA()
@@ -64,9 +63,11 @@ class WeatherRIAStations:
         )
 
         weather_df = pd.DataFrame(json_weather_data)
-        
+
         weather_df["fecha"] = weather_df["fecha"].apply(
-            lambda x: datetime.date(year=int(x[0:4]), month=int(x[5:7]), day=int(x[8:10]))
+            lambda x: datetime.date(
+                year=int(x[0:4]), month=int(x[5:7]), day=int(x[8:10])
+            )
         )
 
         if complete_data:
@@ -170,14 +171,19 @@ class WeatherRIAStations:
 
         # CREATE LEAP YEAR AND NOT LEAP YEAR DATA TO USE IT IN ALL THE SUTUATIONS
 
+        julian_day_february_15 = 45
         # Leap year
-        if not self.check_if_a_year_is_leap(historic_weather_df["fecha"].iloc[0].year):
+        if not self.check_if_a_year_is_leap(
+            historic_weather_df["fecha"].iloc[julian_day_february_15].year
+        ):
             weather_df_leap = self._create_weather_df_with_29_2(historic_weather_df)
         else:
             weather_df_leap = historic_weather_df
 
         # No leap year
-        if not self.check_if_a_year_is_leap(historic_weather_df["fecha"].iloc[0].year):
+        if not self.check_if_a_year_is_leap(
+            historic_weather_df["fecha"].iloc[julian_day_february_15].year
+        ):
             weather_df_no_leap = historic_weather_df
         else:
             weather_df_no_leap = self._remove_29_2_from_weather_data(
@@ -206,10 +212,11 @@ class WeatherRIAStations:
                     weather_data_last_year["dia"] == current_day_of_the_year
                 ]
             )
-            # Date with format YYYY-MM-DD 
-            
-            weather_df_last_year_item["fecha"] = datetime.date(day_date.year, day_date.month, day_date.day)
-            
+            # Date with format YYYY-MM-DD
+
+            weather_df_last_year_item["fecha"] = datetime.date(
+                day_date.year, day_date.month, day_date.day
+            )
 
             # adding days to the json weather date
             # weather_df.loc[len(weather_df)] = weather_df_last_year_item
@@ -259,9 +266,11 @@ class WeatherRIAStations:
 
         # TODO: Is better to create a list of type: `weather_complete_type``
         weather_year_df = pd.DataFrame(json_weather_data_last_year)
-        
+
         weather_year_df["fecha"] = weather_year_df["fecha"].apply(
-            lambda x: datetime.date(year=int(x[0:4]), month=int(x[5:7]), day=int(x[8:10]))
+            lambda x: datetime.date(
+                year=int(x[0:4]), month=int(x[5:7]), day=int(x[8:10])
+            )
         )
 
         if complete_values_method == "means":
@@ -271,7 +280,7 @@ class WeatherRIAStations:
             weather_year_df = self.get_the_driest_year(weather_year_df)
 
         elif complete_values_method == "rainest_year":
-            weather_year_df = self.get_rainest_year(weather_year_df)
+            weather_year_df = self.get_rainest_month(weather_year_df)
 
         return weather_year_df
 
@@ -289,7 +298,16 @@ class WeatherRIAStations:
 
         # drop unnecessary columns
         weather_year_df = weather_year_df.drop(
-            columns=["fecha", "horMinTempMax","horMinTempMin", 'fechaUtlMod', 'horMinHumMin',"horMinHumMin", "horMinHumMax", "horMinVelMax"]
+            columns=[
+                "fecha",
+                "horMinTempMax",
+                "horMinTempMin",
+                "fechaUtlMod",
+                "horMinHumMin",
+                "horMinHumMin",
+                "horMinHumMax",
+                "horMinVelMax",
+            ]
         )
         # group items where dia column is the same and get the mean. Preserve the fecha column
         weather_df_dia_mean = weather_year_df.groupby(["dia"]).mean()
@@ -305,83 +323,72 @@ class WeatherRIAStations:
 
         return weather_df_dia_mean
 
-    def get_the_driest_year(self, weather_year_df):
-        """This method take a dataframe, calculates the total irrigation for each  year, and selects the data of the driest year
-
+    def get_the_driest_year(self, weather_year_df, kc=1):
+        """The rainest year is calculated subtracting the precipitation with the reference evapotranspiration
+            In my opinion this is the best way to calculate the driest year
         Args:
             weather_year_df (pd.Dataframe): The weather dataframe
+            kc (int, optional): The crop coefficient. Defaults to 1.
 
         Returns:
-            pd.Dataframe: The driest year weather dataframe
+            pd.Dataframe: Contain the weather data for 1 year
         """
-         # drop unnecessary columns
-        weather_year_df = weather_year_df.drop(
-            columns=[ "horMinTempMax","horMinTempMin", 'fechaUtlMod', 'horMinHumMin',"horMinHumMin", "horMinHumMax", "horMinVelMax"]
-        )
-        # group items where dia column is the same and get the mean. Preserve the fecha column
-        
         weather_year_df["fecha"] = pd.to_datetime(weather_year_df["fecha"])
-         
-        precipitation_df = weather_year_df.loc[:, ["precipitacion"]]
 
-        precipitation_df["year"] = weather_year_df["fecha"].apply(
-            lambda fecha: fecha.year
+        deficit_df = weather_year_df.loc[:, ["precipitacion", "et0"]]
+
+        deficit_df["year"] = weather_year_df["fecha"].apply(lambda fecha: fecha.year)
+        deficit_df["month"] = weather_year_df["fecha"].apply(lambda fecha: fecha.month)
+
+        deficit_df["deficit"] = weather_year_df["precipitacion"] - (
+            weather_year_df["et0"] * kc
         )
 
-        precipitation_df = precipitation_df.groupby("year").sum()
+        deficit_df = deficit_df.groupby(["year", "month"]).sum()
 
-        
-        driest_year = precipitation_df["precipitacion"].idxmin()
+        # get the rainest january
 
-        weather_filtered_df = weather_year_df[
-            weather_year_df["fecha"].dt.year == driest_year
-        ]
-        
-        # Is leap year?
-        is_leap_year = self.check_if_a_year_is_leap(driest_year)
+        draiest_dataframes_list = []
+        for month in range(1, 13):
+            draiest_month = deficit_df[
+                deficit_df.index.get_level_values("month") == month
+            ]["deficit"].idxmin()
+            weather_df_month = weather_year_df[
+                (weather_year_df["fecha"].dt.year == draiest_month[0])
+                & (weather_year_df["fecha"].dt.month == draiest_month[1])
+            ]
+            draiest_dataframes_list.append(weather_df_month)
 
+        weather_filtered_df = pd.concat(draiest_dataframes_list)
 
-        weather_filtered_df = weather_filtered_df.reset_index()
-        
+        julian_day_february_29 = 59
+        leap_year = 2020
+        no_leap_year = 2019
+
+        # IF 02-29 EXISTS, CHANGE ALL JULIAN DAYS TO BE IN RANGE
+
+        if weather_filtered_df.iloc[julian_day_february_29]["fecha"].month == 2:
+            # is a leap year
+            weather_filtered_df["fecha"] = weather_filtered_df["fecha"].apply(
+                lambda fecha: fecha.replace(year=leap_year)
+            )
+
+        else:
+            weather_filtered_df["fecha"] = weather_filtered_df["fecha"].apply(
+                lambda fecha: fecha.replace(year=no_leap_year)
+            )
+
         weather_filtered_df = self.add_missed_days_to_df(weather_filtered_df)
 
         return weather_filtered_df
 
 
-        # weather_year_df["fecha"] = pd.to_datetime(weather_year_df["fecha"])
-
-        # precipitation_df = weather_year_df.loc[:, ["precipitacion"]]
-
-        # precipitation_df["year"] = weather_year_df["fecha"].apply(
-        #     lambda fecha: fecha.year
-        # )
-
-        # precipitation_df = precipitation_df.groupby("year").sum()
-
-        # driest_year = precipitation_df["precipitacion"].idxmin()
-
-        # weather_filtered_df = weather_year_df[
-        #     weather_year_df["fecha"].dt.year == driest_year
-        # ]
-
-        # weather_filtered_df = weather_filtered_df.reset_index()
-
-        # return weather_filtered_df
-
-    def add_missed_days_to_df(self, weather_year_df):
-        # Fill missing days
-        weather_year_df = weather_year_df.set_index('fecha')
-        weather_year_df = weather_year_df.asfreq('D')
-        weather_year_df = weather_year_df.fillna(method='ffill')
-        weather_year_df = weather_year_df.reset_index()
-        
-        return weather_year_df
-    
-    def get_rainest_year(self, weather_year_df):
-        """This method take a dataframe, calculates the total irrigation for each  year, and selects the data of the driest year
-
+    def get_rainest_month(self, weather_year_df, kc=1):
+        """The rainest year is calculated subtracting the precipitation with the reference evapotranspiration
+            In my opinion this is the best way to calculate the rainest year
         Args:
             weather_year_df (pd.Dataframe): The weather dataframe
+            kc (int, optional): The crop coefficient. Defaults to 1.
 
         Returns:
             pd.Dataframe: _description_
@@ -389,23 +396,88 @@ class WeatherRIAStations:
 
         weather_year_df["fecha"] = pd.to_datetime(weather_year_df["fecha"])
 
-        precipitation_df = weather_year_df.loc[:, ["precipitacion"]]
+        deficit_df = weather_year_df.loc[:, ["precipitacion", "et0"]]
 
-        precipitation_df["year"] = weather_year_df["fecha"].apply(
-            lambda fecha: fecha.year
+        deficit_df["year"] = weather_year_df["fecha"].apply(lambda fecha: fecha.year)
+        deficit_df["month"] = weather_year_df["fecha"].apply(lambda fecha: fecha.month)
+        deficit_df["deficit"] = weather_year_df["precipitacion"] - (
+            weather_year_df["et0"] * kc
         )
 
-        precipitation_df = precipitation_df.groupby("year").sum()
+        deficit_df = deficit_df.groupby(["year", "month"]).sum()
 
-        driest_year = precipitation_df["precipitacion"].idxmax()
+        # get the rainest january
 
-        weather_filtered_df = weather_year_df[
-            weather_year_df["fecha"].dt.year == driest_year
-        ]
+        rainest_dataframes_list = []
+        for month in range(1, 13):
+            rainest_month = deficit_df[
+                deficit_df.index.get_level_values("month") == month
+            ]["deficit"].idxmax()
+            weather_df_month = weather_year_df[
+                (weather_year_df["fecha"].dt.year == rainest_month[0])
+                & (weather_year_df["fecha"].dt.month == rainest_month[1])
+            ]
+            rainest_dataframes_list.append(weather_df_month)
 
-        weather_filtered_df = weather_filtered_df.reset_index()
+        weather_filtered_df = pd.concat(rainest_dataframes_list)
+
+        julian_day_february_29 = 59
+        leap_year = 2020
+        no_leap_year = 2019
+
+        # IF 02-29 EXISTS, CHANGE ALL JULIAN DAYS TO BE IN RANGE
+
+        if weather_filtered_df.iloc[julian_day_february_29]["fecha"].month == 2:
+            # is a leap year
+            weather_filtered_df["fecha"] = weather_filtered_df["fecha"].apply(
+                lambda fecha: fecha.replace(year=leap_year)
+            )
+            weather_filtered_df["dia"] = weather_filtered_df["fecha"].apply(
+                lambda fecha: fecha.timetuple().tm_yday
+            )
+        else:
+            weather_filtered_df["fecha"] = weather_filtered_df["fecha"].apply(
+                lambda fecha: fecha.replace(year=no_leap_year)
+            )
+            weather_filtered_df["dia"] = weather_filtered_df["fecha"].apply(
+                lambda fecha: fecha.timetuple().tm_yday
+            )
+
+        weather_filtered_df = self.add_missed_days_to_df(weather_filtered_df)
 
         return weather_filtered_df
+    
+    
+
+    def add_missed_days_to_df(self, weather_year_df):
+        # Fill missing days
+        if weather_year_df.iloc[-1]["fecha"].day != 31:
+            # add new item
+
+            weather_year_df.loc[len(weather_year_df.index)] = weather_year_df.iloc[-1]
+            # change last item in date
+            weather_year_df.loc[
+                weather_year_df.index[-1], "fecha"
+            ] = weather_year_df.iloc[-1]["fecha"] + datetime.timedelta(days=1)
+
+        weather_year_df = weather_year_df.set_index("fecha")
+        # remove duplicated index (fechas)
+        weather_year_df = weather_year_df[
+            ~weather_year_df.index.duplicated(keep="first")
+        ]
+
+        weather_year_df = weather_year_df.asfreq("D")
+        weather_year_df = weather_year_df.fillna(method="ffill")
+
+        # adjust julian days
+        weather_year_df["dia"] = weather_year_df.index.map(
+            lambda date: date.timetuple().tm_yday
+        )
+        weather_year_df = weather_year_df.reset_index()
+
+        # if not 31-12 add 31-12
+
+        return weather_year_df
 
     def get_date_using_julian_day(self, day_of_the_year, is_year_leap=True):
         """This method calculate the date using the julian day and the year
@@ -439,7 +511,7 @@ class WeatherRIAStations:
             _type_: json file with the weatherdata
         """
         leap_year = 2020
-        
+
         # change year to 2020 to add 29-2
         weather_df["fecha"] = weather_df["fecha"].apply(
             lambda fecha: fecha.replace(year=leap_year)
@@ -452,12 +524,10 @@ class WeatherRIAStations:
         # add weather_df_29_2 after 28-02 date
         weather_df_29_2["fecha"] = pd.to_datetime(f"{leap_year}-02-29")
         # add 29-2 to json_weather_data_last_year
-                
+
         # adding days to the json weather date
         # weather_df.loc[len(weather_df)] = weather_df_last_year_item
-        weather_df = pd.concat(
-            [weather_df, weather_df_29_2], ignore_index=True
-        )
+        weather_df = pd.concat([weather_df, weather_df_29_2], ignore_index=True)
 
         weather_df = weather_df.reset_index(drop=True)
         weather_df.index = weather_df.index + 1
@@ -473,10 +543,11 @@ class WeatherRIAStations:
             _type_: json file with the weatherdata
         """
         # remove 29-2 from weather_df
-        year = weather_df["fecha"].dt.year.unique()[0]
-        weather_df = weather_df[weather_df["fecha"] != f"{year}-02-29"].reset_index(
-            drop=True
-        )
+        julian_day_february_29 = 59
+
+        weather_df = weather_df.drop(
+            weather_df.iloc[julian_day_february_29].name
+        ).reset_index(drop=True)
         weather_df.index = weather_df.index + 1
 
         return weather_df

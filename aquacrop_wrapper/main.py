@@ -1,16 +1,15 @@
 import argparse
+import datetime
 
 try:
     from .constants import AquacropConstants
     from .aquacrop_wrapper.crop_wrapper import WCrop
     from .aquacrop_wrapper.soil_wrapper import WSoil
     from .aquacrop_wrapper.irrigation_wrapper import WIrrigation
-    from .aquacrop_wrapper.weather_wrapper import WWeather
     from .aquacrop_wrapper.aquacrop_wrapper import AquacropWrapper
     from .aquacrop_wrapper.aquacrop_variables_controller import (
         AquacropVariablesController,
     )
-    from .weather_data.weather_ria_stations import WeatherRIAStations
     from .weather_data.weather import Weather
 
 
@@ -18,12 +17,10 @@ except ImportError:
     from aquacrop_wrapper.crop_wrapper import WCrop
     from aquacrop_wrapper.soil_wrapper import WSoil
     from aquacrop_wrapper.irrigation_wrapper import WIrrigation
-    from aquacrop_wrapper.weather_wrapper import WWeather
     from aquacrop_wrapper.aquacrop_wrapper import AquacropWrapper
     from aquacrop_wrapper.aquacrop_variables_controller import (
         AquacropVariablesController,
     )
-    from weather_data.weather_ria_stations import WeatherRIAStations
     from weather_data.weather import Weather
 
     from constants import AquacropConstants
@@ -134,24 +131,8 @@ irrigation = WIrrigation(
 aquacrop_variables_controller = AquacropVariablesController(
     simulation_types=args.simulation_types
 )
-weather_ria_stations = WeatherRIAStations()
-weather = Weather(
-    start_simulation_date=args.sim_start, end_simulation_date=args.sim_end
-)
 
-weather_df = weather.get_weather_data_using_ria(
-    start_year=2015,
-    end_year=2019,
-    station_id="2",
-    province_id=14,
-    complete_data=True,
-    complete_type="last_n_years",
-    complete_values_method="means",
-)
 
-weather = Weather(
-    start_simulation_date=args.sim_start, end_simulation_date=args.sim_end
-)
 
 start_year = 2000  # start year weather data
 end_year = 2022  # end year weather data
@@ -159,12 +140,24 @@ station_id = "2"  # station id
 province_id = 14  # province id
 complete_data = True  # complete data
 complete_type = "last_n_years"  # complete type
-complete_values_method = "rainest_year"  # complete values method
+complete_values_method = "driest_year"  # complete values method (rainest_year, driest_year, means, in_percentage_of_the_average)
+# harvest_date =  "08-4" # format MM/DD (aproximate) This is used in the complete data method. Why? Because..
 lat_deg = 37.0  # latitude
 lon_deg = -4.0  # longitude
 altitude = 200.0  # altitude
 output_file_path = f"/Users/pacopuig/Desktop/PROGRAMACION/aquacrop_cameras/aquacrop_wrapper/data/output_{start_year}_{end_year}_{complete_values_method}.json"
 
+# julian_harvest_date = datetime.datetime.strptime(harvest_date, "%m-%d").timetuple().tm_yday
+
+weather = Weather(
+    start_simulation_date=args.sim_start, end_simulation_date=args.sim_end
+)
+
+# Important notes:
+# 1. The weather data is downloaded from the RIA (https://www.riagro.net/). The data is downloaded in a json format.
+# 2. The weather data is downloaded for the period of time between start_year and end_year.
+# 3. Complete values method is used to complete the future weather data. The complete values method can be: rainest_year, driest_year, means
+## In the raienest and driest the algorithm select the months with more and less precipitation
 
 historical_weather = weather.get_weather_data_using_ria(
     start_year=start_year,
@@ -179,11 +172,12 @@ historical_weather = weather.get_weather_data_using_ria(
 forecast_weather = weather.get_forecast_for_the_next_5_days(
     lat_degrees=lat_deg, lon_degrees=lon_deg, altitude=altitude
 )
+
+# THIS CODE UPDATE THE HISTORICAL WEATHER WITH THE FORECAST WEATHER (very simple)
 historical_weather.set_index("Date", inplace=True)
 forecast_weather.set_index("Date", inplace=True)
 
 historical_weather.update(forecast_weather)
-
 historical_weather.reset_index(inplace=True)
 
 aquacrop = AquacropWrapper(
@@ -195,8 +189,68 @@ aquacrop = AquacropWrapper(
     irrigation=irrigation,
 )
 
+aquacrop = AquacropWrapper(
+    sim_start=args.sim_start,
+    sim_end=args.sim_end,
+    weather=historical_weather,
+    soil=soil,
+    crop=crop,
+    irrigation=irrigation,
+)
+# delete this +-+-+-+-+-+-+-
+import matplotlib.pyplot as plt
+irrigation2 = WIrrigation(
+    irrigation_method="soil_moisture_targets",
+    initial_water_content=args.initial_water_content,
+    soil_moisture_targets=[100]*4,
+    net_irrigation_soil_moisture_target=args.net_irrigation_soil_moisture_target,
+    constant_depth=args.constant_depth,
+    irrigation_time_interval=args.irrigation_time_interval,
+)
+aquacrop2 = AquacropWrapper(
+    sim_start=args.sim_start,
+    sim_end=args.sim_end,
+    weather=historical_weather,
+    soil=soil,
+    crop=crop,
+    irrigation=irrigation2,
+)
+aquacrop.run(aquacrop_variables_controller=aquacrop_variables_controller)
+aquacrop2.run(aquacrop_variables_controller=aquacrop_variables_controller)
+crop_growth_rainfed = aquacrop.model.get_crop_growth()
+crop_growth_irrigated = aquacrop2.model.get_crop_growth()
+
+# drop time_step_counter == 0
+crop_growth_rainfed = crop_growth_rainfed[crop_growth_rainfed["time_step_counter"] != 0]
+crop_growth_irrigated = crop_growth_irrigated[crop_growth_irrigated["time_step_counter"] != 0]
+
+canopy_cover_rainfed = crop_growth_rainfed["canopy_cover"]
+canopy_cover_irrigated = crop_growth_irrigated["canopy_cover"]
+
+date_formated_rainfed = crop_growth_rainfed["date"].apply(
+            lambda x: datetime.datetime.fromtimestamp(x)
+        )
+date_formated_irrigated = crop_growth_irrigated["date"].apply(
+
+            lambda x: datetime.datetime.fromtimestamp(x)
+        )
+
+irrigation = aquacrop2.model.get_water_flux()["IrrDay"]
+
+fig, ax = plt.subplots()
+ax.plot(date_formated_rainfed,canopy_cover_rainfed, label="rainfed", linestyle="--", color="red")
+ax.plot(date_formated_irrigated,canopy_cover_irrigated, label="irrigated", linestyle="-", color="green")
+
+
+ax.set_xlabel("Days")
+ax.set_ylabel("Canopy cover")
+ax.legend()
+
+# delete until this
 
 print(aquacrop.run(aquacrop_variables_controller=aquacrop_variables_controller))
+
+print(aquacrop.get_simulation_results())
 
 aquacrop.show_charts()
 

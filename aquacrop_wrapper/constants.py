@@ -74,6 +74,7 @@ class AquacropConstants:
     COMPLETE_WEATHER_DATA_METHOD = {
         "means": 0,
         "driest_year": 1,
-        "rainest_year": 2
+        "rainest_year": 2,
+        "in_percentage_of_the_average": 3,
 
     }

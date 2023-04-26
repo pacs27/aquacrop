@@ -72,10 +72,13 @@ class AquacropWrapper:
         additional_information = self.model.get_additional_information()
         return additional_information
     
+    def get_simulation_results(self):
+        return self.model.get_simulation_results()
     def show_charts(self):
         self.model.get_crop_growth_chart(multiples_plots_joined=True, show_chart=True)
         self.model.get_water_storage_chart(multiples_plots_joined=True, show_chart=True)
         self.model.get_water_flux_chart(multiples_plots_joined=True, show_chart=True)
+        self.model.get_weather_chart(multiples_plots_joined=True, show_chart=True)
         
 
     def save_outputs(self, file_path):
