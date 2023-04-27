@@ -112,7 +112,94 @@ parser.add_argument(
     help="Type of simulation",
 )
 
+# start weather data
+parser.add_argument(
+    "-swdate",
+    "--start_weather_date",
+    type=int,
+    help="Start weather date for historic data",
+)
+
+# end weather data
+parser.add_argument(
+    "-ewdate",
+    "--eend_weather_date",
+    type=int,
+    help="End weather date for historic data",
+)
+
+# RIA STATION ID
+parser.add_argument(
+    "-rsid",
+    "--ria_station_id",
+    type=int,
+    help="RIA station id",
+)
+
+# RIA PROVINCE ID
+parser.add_argument(
+    "-rpid",
+    "--ria_province_id",
+    type=int,
+    help="RIA province id",
+)
+
+# Complete weather data
+parser.add_argument(
+    "-cwd",
+    "--complete_weather_data",
+    type=bool,
+    choices=["yes", "no"],
+    help="Complete Weather Data or Not?",
+)
+
+# Complete type
+parser.add_argument(
+    "-cwtype",
+    "--complete_weather_type",
+    type=str,
+    choices=AquacropConstants.COMPLETE_WEATHER_DATA_TYPE,
+    help="Complete weather  type",
+)
+
+# Complete values method
+parser.add_argument(
+    "-cwvm",
+    "--complete_weather_values_method",
+    type=str,
+    choices=AquacropConstants.COMPLETE_WEATHER_DATA_METHOD,
+    help="Complete weather values method",
+)
+
+# latitude
+parser.add_argument(
+    "-lat",
+    "--latitude",
+    type=float,
+    help="Latitude (degrees)",
+)
+
+# longitude
+parser.add_argument(
+    "-lon",
+    "--longitude",
+    type=float,
+    help="Longitude (degrees)",
+)
+
+# Altitude
+parser.add_argument(
+    "-alt",
+    "--altitude",
+    type=float,
+    help="Altitude (m) ",
+)
+
+
 args = parser.parse_args()
+
+# ----- Check Variables -----
+args.station_id = str(args.station_id)
 
 # ----- Run Aquacrop -----
 print("args = ", args)
@@ -135,21 +222,21 @@ aquacrop_variables_controller = AquacropVariablesController(
 
 
 
-start_year = 2000  # start year weather data
-end_year = 2022  # end year weather data
-station_id = "2"  # station id
-province_id = 14  # province id
-complete_data = True  # complete data
-complete_type = "last_n_years"  # complete type
-complete_values_method = "driest_year"  # complete values method (rainest_year, driest_year, means, in_percentage_of_the_average)
-# harvest_date =  "08-4" # format MM/DD (aproximate) This is used in the complete data method. Why? Because..
-lat_deg = 37.0  # latitude
-lon_deg = -4.0  # longitude
-altitude = 200.0  # altitude
+# start_year = 2000  # start year weather data
+# end_year = 2022  # end year weather data
+# station_id = "2"  # station id
+# province_id = 14  # province id
+# complete_weather_data = True  # complete data
+# complete_weather_type = "last_n_years"  # complete type
+# complete_weather_values_method = "driest_year"  # complete values method (rainest_year, driest_year, means, in_percentage_of_the_average)
+# # harvest_date =  "08-4" # format MM/DD (aproximate) This is used in the complete data method. Why? Because..
+# lat_deg = 37.0  # latitude
+# lon_deg = -4.0  # longitude
+# altitude = 200.0  # altitude
 
 OUTPUT_FOLDER_ENV = os.environ.get("OUTPUT_FOLDER")
 
-output_file_path = f"{OUTPUT_FOLDER_ENV}/output_{start_year}_{end_year}_{complete_values_method}.json"
+output_file_path = f"{OUTPUT_FOLDER_ENV}/output_{args.start_year}_{args.end_year}_{args.complete_weather_values_method}.json"
 
 # julian_harvest_date = datetime.datetime.strptime(harvest_date, "%m-%d").timetuple().tm_yday
 
@@ -164,17 +251,17 @@ weather = Weather(
 ## In the raienest and driest the algorithm select the months with more and less precipitation
 
 historical_weather = weather.get_weather_data_using_ria(
-    start_year=start_year,
-    end_year=end_year,
-    station_id=station_id,
-    province_id=province_id,
-    complete_data=complete_data,
-    complete_type=complete_type,
-    complete_values_method=complete_values_method,
+    start_year=args.start_year,
+    end_year=args.end_year,
+    station_id=args.station_id,
+    province_id=args.province_id,
+    complete_weather_data=args.complete_weather_data,
+    complete_weather_type=args.complete_weather_type,
+    complete_weather_values_method=args.complete_weather_values_method,
 )
 
 forecast_weather = weather.get_forecast_for_the_next_5_days(
-    lat_degrees=lat_deg, lon_degrees=lon_deg, altitude=altitude
+    lat_degrees=args.lat_deg, lon_degrees=args.lon_deg, altitude=args.altitude
 )
 
 # THIS CODE UPDATE THE HISTORICAL WEATHER WITH THE FORECAST WEATHER (very simple)

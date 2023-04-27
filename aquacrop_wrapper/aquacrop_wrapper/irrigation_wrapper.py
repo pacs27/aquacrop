@@ -19,7 +19,7 @@ class WIrrigation:
 
     def __init__(self, irrigation_method: AquacropConstants.IRRIGATION_METHODS,
                  initial_water_content: AquacropConstants.INITIAL_WATER_CONTENT,
-                 soil_moisture_targets,
+                 soil_moisture_targets,# It is a list of soil moisture targets for each stage of the crop cycle (in %) The stages are: "emergence": 0, "canopy_growth": 1, "max_canopy": 2, "senescence": 3
                  irrigation_time_interval,
                  net_irrigation_soil_moisture_target,
                  constant_depth,

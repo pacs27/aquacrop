@@ -85,7 +85,22 @@
                 "-iwc=FC",
                 "-imethod=rainfed",
                 "--soil_moisture_targets=100",
-                "--simulation_types=normal_simulation"
+                "--simulation_types=normal_simulation",
+                "--start_weather_date=2000",
+                "--end_weather_date=2022",
+                "--ria_station_id=2",
+                "--ria_province_id=14",
+                "--complete_weather_data=True",
+                "--complete_weather_type=last_n_years",
+                "--complete_weather_values_method=driest_year",
+                "--latitude=37.0",
+                "--longitude=-4.0",
+                "--altitude=200",
+
+
+
+
+                
             ],
             "console": "integratedTerminal",
             "env": {
