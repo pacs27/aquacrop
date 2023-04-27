@@ -3,8 +3,7 @@ class ProjectConstants:
     """Constants used in Aquacrop project."""
     # Aquacrop project constants
     PROJECT_FOLDER_NAME = "aquacrop_cameras"
-    PARENT_DIRECTORY_PATH = os.getcwd()
-
+    PARENT_DIRECTORY_PATH = "/home/pi/aquacrop_cameras"
     
 class AquacropConstants:
     """Constants used in Aquacrop model."""

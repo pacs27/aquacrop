@@ -8,7 +8,8 @@ except ImportError:
     from config import AQUACROP_DIRECTORY_PATH
     
 sys.path.append(
-    AQUACROP_DIRECTORY_PATH)
+    AQUACROP_DIRECTORY_PATH
+)
 
 from aquacrop import (
     AquaCropModel,

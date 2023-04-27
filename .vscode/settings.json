@@ -3,6 +3,7 @@
         "app",
         "${workspaceFolder}/venv/Lib/site-packages",
         "${workspaceFolder}/aquacrop_wrapper/aquacrop",
+        "${workspaceFolder}/aquacrop_wrapper/own_utils_py",
         "/Users/pacopuig/Desktop/PROGRAMACION/PYTHON/own_utils_py"
     ],
     "python.formatting.provider": "black",

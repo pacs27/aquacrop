@@ -12,6 +12,8 @@ try:
         AquacropVariablesController,
     )
     from .weather_data.weather import Weather
+    from .config import OUTPUT_FOLDER
+
 
 
 except ImportError:
@@ -25,6 +27,7 @@ except ImportError:
     from weather_data.weather import Weather
 
     from constants import AquacropConstants
+    from config import OUTPUT_FOLDER
 
 
 # ----- Parse arguments -----
@@ -37,10 +40,10 @@ parser.add_argument(
 parser.add_argument(
     "-send", "--sim_end", type=str, help="Date of simulation end (YYYY/MM/DD)"
 )
-parser.add_argument("--test_mode", action="store_true", help="Test mode (True/False)")
-parser.add_argument(
-    "-wpath", "--weather_path", type=str, help="File path with weather data"
-)
+# parser.add_argument("--test_mode", action="store_true", help="Test mode (True/False)")
+# parser.add_argument(
+#     "-wpath", "--weather_path", type=str, help="File path with weather data"
+# )
 parser.add_argument(
     "-stype",
     "--soil_type",
@@ -55,7 +58,7 @@ parser.add_argument(
     choices=AquacropConstants.TYPES_OF_CROPS,
     help="Crop type",
 )
-parser.add_argument("-pdate", "--plating_date", type=str, help="Planting date (MM/DD)")
+parser.add_argument("-pdate", "--planting_date", type=str, help="Planting date (MM/DD)")
 
 # -+-+-+- IRRIGATION -+-+-+-+-
 parser.add_argument(
@@ -97,7 +100,7 @@ parser.add_argument(
     "-smt",
     "--soil_moisture_targets",
     type=str,
-    help="""(list): Soil moisture targets (%taw) to maintain in each growth stage 
+    help="""(list): Soil moisture targets (%taw) to maintain in each growth stage (4)
                     (only used if irrigation method is equal to soil_moisture_targets). Info: growing stages are emergence, 
                     canopy_growth, max_canopy and senescence""",
 )
@@ -115,7 +118,7 @@ parser.add_argument(
 # start weather data
 parser.add_argument(
     "-swdate",
-    "--start_weather_date",
+    "--start_weather_year",
     type=int,
     help="Start weather date for historic data",
 )
@@ -123,7 +126,7 @@ parser.add_argument(
 # end weather data
 parser.add_argument(
     "-ewdate",
-    "--eend_weather_date",
+    "--end_weather_year",
     type=int,
     help="End weather date for historic data",
 )
@@ -149,7 +152,7 @@ parser.add_argument(
     "-cwd",
     "--complete_weather_data",
     type=bool,
-    choices=["yes", "no"],
+    choices=[True, False],
     help="Complete Weather Data or Not?",
 )
 
@@ -198,12 +201,16 @@ parser.add_argument(
 
 args = parser.parse_args()
 
+
 # ----- Check Variables -----
-args.station_id = str(args.station_id)
+args.ria_station_id = str(args.ria_station_id)
+args.soil_moisture_targets = args.soil_moisture_targets.split(',')
+if(len(args.soil_moisture_targets)!= 4):
+    raise ValueError("Soil moisture targets must be a list of 4 values")
 
 # ----- Run Aquacrop -----
 print("args = ", args)
-crop = WCrop(crop_type=args.crop_type, planting_date=args.plating_date)
+crop = WCrop(crop_type=args.crop_type, planting_date=args.planting_date)
 soil = WSoil(soil_type=args.soil_type)
 irrigation = WIrrigation(
     irrigation_method=args.irrigation_method,
@@ -222,10 +229,10 @@ aquacrop_variables_controller = AquacropVariablesController(
 
 
 
-# start_year = 2000  # start year weather data
-# end_year = 2022  # end year weather data
-# station_id = "2"  # station id
-# province_id = 14  # province id
+# start_weather_year = 2000  # start year weather data
+# end_weather_year = 2022  # end year weather data
+# ria_station_id = "2"  # station id
+# ria_province_id = 14  # province id
 # complete_weather_data = True  # complete data
 # complete_weather_type = "last_n_years"  # complete type
 # complete_weather_values_method = "driest_year"  # complete values method (rainest_year, driest_year, means, in_percentage_of_the_average)
@@ -234,9 +241,8 @@ aquacrop_variables_controller = AquacropVariablesController(
 # lon_deg = -4.0  # longitude
 # altitude = 200.0  # altitude
 
-OUTPUT_FOLDER_ENV = os.environ.get("OUTPUT_FOLDER")
 
-output_file_path = f"{OUTPUT_FOLDER_ENV}/output_{args.start_year}_{args.end_year}_{args.complete_weather_values_method}.json"
+output_file_path = f"{OUTPUT_FOLDER}/output_{args.start_weather_year}_{args.end_weather_year}_{args.complete_weather_values_method}.json"
 
 # julian_harvest_date = datetime.datetime.strptime(harvest_date, "%m-%d").timetuple().tm_yday
 
@@ -246,22 +252,22 @@ weather = Weather(
 
 # Important notes:
 # 1. The weather data is downloaded from the RIA (https://www.riagro.net/). The data is downloaded in a json format.
-# 2. The weather data is downloaded for the period of time between start_year and end_year.
+# 2. The weather data is downloaded for the period of time between start_weather_year and end_weather_year.
 # 3. Complete values method is used to complete the future weather data. The complete values method can be: rainest_year, driest_year, means
 ## In the raienest and driest the algorithm select the months with more and less precipitation
 
 historical_weather = weather.get_weather_data_using_ria(
-    start_year=args.start_year,
-    end_year=args.end_year,
-    station_id=args.station_id,
-    province_id=args.province_id,
-    complete_weather_data=args.complete_weather_data,
-    complete_weather_type=args.complete_weather_type,
-    complete_weather_values_method=args.complete_weather_values_method,
+    start_year=args.start_weather_year,
+    end_year=args.end_weather_year,
+    station_id=args.ria_station_id,
+    province_id=args.ria_province_id,
+    complete_data=args.complete_weather_data,
+    complete_type=args.complete_weather_type,
+    complete_values_method=args.complete_weather_values_method,
 )
 
 forecast_weather = weather.get_forecast_for_the_next_5_days(
-    lat_degrees=args.lat_deg, lon_degrees=args.lon_deg, altitude=args.altitude
+    lat_degrees=args.latitude, lon_degrees=args.longitude, altitude=args.altitude
 )
 
 # THIS CODE UPDATE THE HISTORICAL WEATHER WITH THE FORECAST WEATHER (very simple)
@@ -293,7 +299,7 @@ import matplotlib.pyplot as plt
 irrigation2 = WIrrigation(
     irrigation_method="soil_moisture_targets",
     initial_water_content=args.initial_water_content,
-    soil_moisture_targets=[100]*4,
+    soil_moisture_targets=args.soil_moisture_targets,
     net_irrigation_soil_moisture_target=args.net_irrigation_soil_moisture_target,
     constant_depth=args.constant_depth,
     irrigation_time_interval=args.irrigation_time_interval,

@@ -5,12 +5,14 @@ import pandas as pd
 
 try:
     from aquacrop_wrapper.weather_data.weather_ria_stations import WeatherRIAStations
+    from aquacrop_wrapper.config import OWN_UTILS_PATH
 except ImportError:
     from .weather_ria_stations import WeatherRIAStations
+    from config import OWN_UTILS_PATH, MY_OWN_API_KEY
 
 
-path_to_utils = os.getenv("OWN_UTILS_PATH")
-sys.path.append(path_to_utils)
+sys.path.append(OWN_UTILS_PATH)
+
 
 from utils.weather.apis.open_weather_api import OpenWeather
 from utils.weather.convert import kelvin2celsius
@@ -73,7 +75,7 @@ class Weather:
         return weather_aquacrop.getDataframe()
 
     def get_forecast_for_the_next_5_days(self, lat_degrees, lon_degrees, altitude=0):
-        open_weather_api = OpenWeather()
+        open_weather_api = OpenWeather(my_own_key_arg=MY_OWN_API_KEY)
 
         forecast_with_et0 = (
             open_weather_api.get_forecast_on_geographic_coordinates_with_et0(

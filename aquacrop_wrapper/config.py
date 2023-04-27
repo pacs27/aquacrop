@@ -1,4 +1,7 @@
 import os
-PARENT_DIRECTORY_PATH = os.getcwd()
+PARENT_DIRECTORY_PATH = "/home/pi/aquacrop_cameras"
 AQUACROP_WRAPPER_DIRECTORY_PATH = PARENT_DIRECTORY_PATH + "/aquacrop_wrapper"
 AQUACROP_DIRECTORY_PATH = AQUACROP_WRAPPER_DIRECTORY_PATH + "/aquacrop"
+OWN_UTILS_PATH = AQUACROP_WRAPPER_DIRECTORY_PATH + "/own_utils_py"
+MY_OWN_API_KEY = "3bf49b80f64bb71d99f00474c7143534"
+OUTPUT_FOLDER="/home/pi/aquacrop_cameras/aquacrop_wrapper/data"
