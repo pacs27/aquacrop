@@ -26,9 +26,18 @@ We have to addapt the node server to allow the user to see the aquacrop results.
 The node server only will call the python algorith via the console. A good approach will be to create a venv inside the python part and uses this python interpreter to run the algorith.
 
 **PYTHON PART**
-The algorith have to work inside the main server (In the raspberry PI). This is the best approach as we will have direct access to all the images. 
+
+Current: 
+* Create a python algorith that saves all the canopy cover in a binary image
+* Create a python algorith that read the binary image and show the canopy cover (Portions also)
+* Create a python algorith that read the binary image and show the canopy cover (Portions also)
+* Read  the binary image and show the canopy cover 
+* Update aquacrop based in the binary image
+* Create the interface
+
+The algorith has to work inside the main server (In the raspberry PI). This is the best approach as we will have direct access to all the images. 
 * Create a class that read the images and get the canopy cover. Also the class should have a canopeo algorith to get the canopy in a specific image portion. 
-* Create an algorith that calculate all the canopy cover of all the images and store it in a binary file. After do that it is necessary to create a backup of the images.
+* Create an algorithm that calculate all the canopy cover of all the images and store it in a binary file. After do that it is necessary to create a backup of the images.
 
 **REACT PART**
 Now we have the algorithm that is working (However I dont have the part that update the algorithm based in the sensor, this will come later)

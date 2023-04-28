@@ -1,6 +1,7 @@
 
 from typing import TYPE_CHECKING
 import sys
+import datetime 
 
 try:
     from aquacrop_wrapper.config import AQUACROP_DIRECTORY_PATH
@@ -82,7 +83,7 @@ class AquacropWrapper:
         self.model.get_weather_chart(multiples_plots_joined=True, show_chart=True)
         
 
-    def save_outputs(self, file_path):
+    def save_outputs(self,simulation_id, folder_path):
         simulation_results = self.model.get_simulation_results()
         water_storage = self.model.get_water_storage()
         water_flux = self.model.get_water_flux()
@@ -90,6 +91,8 @@ class AquacropWrapper:
         additional_information = self.model.get_additional_information()
 
         json_functions = JSONFunctions()
+    
+        
 
         simulation_result_json = json_functions.transform_pandas_to_json(
             simulation_results)
@@ -98,12 +101,30 @@ class AquacropWrapper:
         water_flux_json = json_functions.transform_pandas_to_json(water_flux)
         crop_growth_json = json_functions.transform_pandas_to_json(crop_growth)
 
-        json_files = {
-            # "simulation_info": additional_information,
-            "simulation_results": json_functions.json_load(simulation_result_json),
-            # "crop_growth": json_functions.json_load(crop_growth_json),
-            # "water_storage": json_functions.json_load(water_storage_json),
-            # "water_flux": json_functions.json_load(water_flux_json),
-        }
+        # json_files = {
+        #     # "simulation_info": additional_information,
+        #     "simulation_results": json_functions.json_load(simulation_result_json),
+        #     # "crop_growth": json_functions.json_load(crop_growth_json),
+        #     # "water_storage": json_functions.json_load(water_storage_json),
+        #     # "water_flux": json_functions.json_load(water_flux_json),
+        # }
+        
+        # get the timestamp from 1970 in millisecoms
+        today_date = datetime.datetime.now()
+        today_year = today_date.year
+        today_month = today_date.month
+        today_day = today_date.day
+        
+         
+        simulation_info_path = f"{folder_path}/{simulation_id}_{today_year}-{today_month}-{today_day}_simulation_info.json"
+        simulation_result_path = f"{folder_path}/{simulation_id}_{today_year}-{today_month}-{today_day}_simulation_results.json"
+        crop_growth_path = f"{folder_path}/{simulation_id}_{today_year}-{today_month}-{today_day}_crop_growth.json"
+        water_storage_path = f"{folder_path}/{simulation_id}_{today_year}-{today_month}-{today_day}_water_storage.json"
+        water_flux_path = f"{folder_path}/{simulation_id}_{today_year}-{today_month}-{today_day}_water_flux.json"
+        
 
-        json_functions.save_json_file(json_files, file_path)
+        json_functions.save_json_file( additional_information, simulation_info_path)
+        json_functions.save_json_file( json_functions.json_load(simulation_result_json), simulation_result_path)
+        json_functions.save_json_file( json_functions.json_load(crop_growth_json), crop_growth_path)
+        json_functions.save_json_file( json_functions.json_load(water_storage_json), water_storage_path)
+        json_functions.save_json_file( json_functions.json_load(water_flux_json), water_flux_path)

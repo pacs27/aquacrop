@@ -76,6 +76,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/aquacrop_wrapper/main.py",
             "args": [
+                "--simulation_id=1",
                 "-sstart=2023/01/01",
                 "-send=2023/08/01",
                 "-stype=ClayLoam",

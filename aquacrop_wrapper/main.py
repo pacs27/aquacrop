@@ -35,6 +35,10 @@ except ImportError:
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
+    "-sid", "--simulation_id", type=int, help="Id of the simulation (int)"
+)
+
+parser.add_argument(
     "-sstart", "--sim_start", type=str, help="Date of simulation start (YYYY/MM/DD)"
 )
 parser.add_argument(
@@ -242,7 +246,7 @@ aquacrop_variables_controller = AquacropVariablesController(
 # altitude = 200.0  # altitude
 
 
-output_file_path = f"{OUTPUT_FOLDER}/output_{args.start_weather_year}_{args.end_weather_year}_{args.complete_weather_values_method}.json"
+OUTPUT_FOLDER_PATH = f"{OUTPUT_FOLDER}"
 
 # julian_harvest_date = datetime.datetime.strptime(harvest_date, "%m-%d").timetuple().tm_yday
 
@@ -352,7 +356,7 @@ aquacrop.run(aquacrop_variables_controller=aquacrop_variables_controller)
 
 # aquacrop.show_charts()
 
-aquacrop.save_outputs(file_path=output_file_path)
+aquacrop.save_outputs(simulation_id=args.simulation_id,  folder_path=OUTPUT_FOLDER_PATH)
 
 
 # EXAMPLE
