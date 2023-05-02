@@ -480,8 +480,8 @@ def solution_single_time_step(
         NewCond.taw = _TAW.Rz
 
     # Water contents
-    # INFO: second value in timestamp because the value has to be float
-    current_timestamp_value = datetime.datetime.combine(clock_struct.current_simulation_date, datetime.time.min).timestamp()
+    # INFO: second value in timestamp because the value has to be float (x1000 to transform in ms)
+    current_timestamp_value = datetime.datetime.combine(clock_struct.current_simulation_date, datetime.time.min).timestamp()*1000
     outputs.water_storage[row_day, :4] = np.array(
         [clock_struct.time_step_counter,current_timestamp_value ,  growing_season, NewCond.dap]
     )
