@@ -494,6 +494,7 @@ def solution_single_time_step(
         clock_struct.season_counter,
         NewCond.dap,
         Wr,
+        _water_root_depletion.Rz,
         NewCond.z_gw,
         NewCond.surface_storage,
         IrrDay,

@@ -50,6 +50,7 @@ def outputs_when_model_is_finished(
                 "season_counter",
                 "dap",
                 "Wr", # Soil water content in the root zone expressed as an equivalent depth mm.
+                "depletion_root_zone",
                 "z_gw",
                 "surface_storage",
                 "IrrDay",

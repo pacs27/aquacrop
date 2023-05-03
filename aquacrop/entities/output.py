@@ -25,7 +25,7 @@ class Output:
 
         water_storage_n_columns = 4 + len(initial_th) # 4 because time_step_counter, current_simulation_date, growing_season, dap
         self.water_storage = np.zeros((len(time_span), water_storage_n_columns)) 
-        self.water_flux = np.zeros((len(time_span), 17)) # 17 columns
+        self.water_flux = np.zeros((len(time_span), 18)) # 18 columns
         self.crop_growth = np.zeros((len(time_span), 14)) # 14 columns
         
         self.final_stats = pd.DataFrame(
