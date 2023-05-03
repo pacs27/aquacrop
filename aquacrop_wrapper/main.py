@@ -15,7 +15,6 @@ try:
     from .config import OUTPUT_FOLDER
 
 
-
 except ImportError:
     from aquacrop_wrapper.crop_wrapper import WCrop
     from aquacrop_wrapper.soil_wrapper import WSoil
@@ -208,8 +207,8 @@ args = parser.parse_args()
 
 # ----- Check Variables -----
 args.ria_station_id = str(args.ria_station_id)
-args.soil_moisture_targets = args.soil_moisture_targets.split(',')
-if(len(args.soil_moisture_targets)!= 4):
+args.soil_moisture_targets = args.soil_moisture_targets.split(",")
+if len(args.soil_moisture_targets) != 4:
     raise ValueError("Soil moisture targets must be a list of 4 values")
 
 # ----- Run Aquacrop -----
@@ -230,7 +229,6 @@ irrigation = WIrrigation(
 aquacrop_variables_controller = AquacropVariablesController(
     simulation_types=args.simulation_types
 )
-
 
 
 # start_weather_year = 2000  # start year weather data
@@ -300,6 +298,7 @@ aquacrop = AquacropWrapper(
 )
 # delete this +-+-+-+-+-+-+-
 import matplotlib.pyplot as plt
+
 irrigation2 = WIrrigation(
     irrigation_method="soil_moisture_targets",
     initial_water_content=args.initial_water_content,
@@ -356,7 +355,37 @@ aquacrop.run(aquacrop_variables_controller=aquacrop_variables_controller)
 
 # aquacrop.show_charts()
 
-aquacrop.save_outputs(simulation_id=args.simulation_id,  folder_path=OUTPUT_FOLDER_PATH)
+simulation_parameters = {
+    "start_simulation": args.sim_start,
+    "end_simulation": args.sim_end,
+    "soil_type": args.soil_type,
+    "crop": args.crop_type,
+    "planting_date": args.planting_date,
+    "initial_water_content": args.initial_water_content,
+    "irrigation_method": args.irrigation_method,
+    "irrigation_time_interval": args.irrigation_time_interval,
+        
+    "net_irrigation_soil_moisture_target": args.net_irrigation_soil_moisture_target,
+    
+    "constant_depth": args.constant_depth,
+    "soil_moisture_targets": args.soil_moisture_targets,
+    "simulation_types": args.simulation_types,
+    "start_weather_year": args.start_weather_year,
+    "end_weather_year": args.end_weather_year,
+    "ria_station_id": args.ria_station_id,
+    "ria_province_id": args.ria_province_id,
+    "complete_weather_data": args.complete_weather_data,
+    "complete_weather_type": args.complete_weather_type,
+    "complete_weather_values_method": args.complete_weather_values_method,
+    "latitude": args.latitude,
+    "longitude": args.longitude,
+    "altitude": args.altitude,
+}
+aquacrop.save_outputs(
+    simulation_id=args.simulation_id,
+    folder_path=OUTPUT_FOLDER_PATH,
+    simulation_parameters=simulation_parameters,
+)
 
 
 # EXAMPLE

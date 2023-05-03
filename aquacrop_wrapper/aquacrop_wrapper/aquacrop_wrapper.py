@@ -83,7 +83,7 @@ class AquacropWrapper:
         self.model.get_weather_chart(multiples_plots_joined=True, show_chart=True)
         
 
-    def save_outputs(self,simulation_id, folder_path):
+    def save_outputs(self,simulation_id, folder_path, simulation_parameters):
         simulation_results = self.model.get_simulation_results()
         water_storage = self.model.get_water_storage()
         water_flux = self.model.get_water_flux()
@@ -94,7 +94,7 @@ class AquacropWrapper:
         json_functions = JSONFunctions()
     
         
-
+        
         simulation_result_json = json_functions.transform_pandas_to_json(
             simulation_results)
         water_storage_json = json_functions.transform_pandas_to_json(
@@ -124,6 +124,7 @@ class AquacropWrapper:
         water_storage_path = f"{folder_path}/{simulation_id}_{today_year}-{today_month}-{today_day}_water_storage.json"
         water_flux_path = f"{folder_path}/{simulation_id}_{today_year}-{today_month}-{today_day}_water_flux.json"
         weather_path = f"{folder_path}/{simulation_id}_{today_year}-{today_month}-{today_day}_weather.json"
+        simulation_parameters_path = f"{folder_path}/{simulation_id}_{today_year}-{today_month}-{today_day}_simulation_parameters.json"
         
 
         json_functions.save_json_file( additional_information, simulation_info_path)
@@ -132,4 +133,5 @@ class AquacropWrapper:
         json_functions.save_json_file( json_functions.json_load(water_storage_json), water_storage_path)
         json_functions.save_json_file( json_functions.json_load(water_flux_json), water_flux_path)
         json_functions.save_json_file( json_functions.json_load(weather_json), weather_path)
+        json_functions.save_json_file( simulation_parameters, simulation_parameters_path)
         
