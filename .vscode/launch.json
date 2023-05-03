@@ -85,7 +85,7 @@
                 "-iwc=FC",
                 "-imethod=rainfed",
                 "--soil_moisture_targets=100,100,100,100",
-                "--simulation_types=normal_simulation",
+                "--simulation_types=real_time_update",
                 "--start_weather_year=2000",
                 "--end_weather_year=2022",
                 "--ria_station_id=2",

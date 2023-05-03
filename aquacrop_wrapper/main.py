@@ -205,6 +205,51 @@ parser.add_argument(
 args = parser.parse_args()
 
 
+# --- MODIFY THIS----
+# TODO: READ THIS IF YOU WANT TO IMPORVE THE LIBRARY
+# TODO: I HAVE TO MODIFY THIS. I think that the best approach is to save the canopy cover calculated by NODEJS in a json file or database
+# and then read it from here. I have to think about it. It is important to crreate a file or a function that do this job.
+# Also, becaouse the shadows can change during the day of the year for the same hour, it could be interesting to find the moment with less shadows
+
+import json
+import datetime
+import pandas as pd
+# read json file 
+with open('/home/pi/aquacrop_cameras/aquacrop_wrapper/data/canopy_cover_1056_0_2200_1500.json') as json_file:
+    images = json.load(json_file)
+    # pandas dataframe
+    images_df = pd.DataFrame(images)
+
+images_df["date"] = pd.to_datetime(images_df["timeStamp"], unit='ms')
+
+# select images between 15 and 16
+
+images_between_15_16 = images_df[(images_df["date"].dt.hour > 15)]
+images_between_15_16 = images_between_15_16[(images_between_15_16["date"].dt.hour < 17)]
+
+# add column with day-month-year with minimun 2 digits
+images_between_15_16["day-month-year"] = images_between_15_16["date"].dt.strftime('%d-%m-%Y')
+
+# delete images with the same dt.day
+images_between_15_16 = images_between_15_16.drop_duplicates(subset=['day-month-year'], keep='last')
+
+# delete days before 15-03-2023
+images_between_15_16 = images_between_15_16[(images_between_15_16["date"] > datetime.datetime(2023, 3, 15))]
+
+# The canopy is not stable as a factor like the wind and the shadows, so we need to smooth the data
+images_between_15_16['canopyCover'] = images_between_15_16['canopyCover'].rolling(5).mean()
+
+        
+    
+    
+
+
+    
+print("end tests")
+
+
+# ------------
+
 # ----- Check Variables -----
 args.ria_station_id = str(args.ria_station_id)
 args.soil_moisture_targets = args.soil_moisture_targets.split(",")
@@ -227,7 +272,8 @@ irrigation = WIrrigation(
 #                    test_mode=args.test_mode)
 
 aquacrop_variables_controller = AquacropVariablesController(
-    simulation_types=args.simulation_types
+    simulation_types=args.simulation_types,
+    cameras_data_df=images_between_15_16
 )
 
 
