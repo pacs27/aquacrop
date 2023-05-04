@@ -28,7 +28,7 @@ def cc_development(
 
         CCo (float): Fractional canopy cover size at emergence
 
-        CCx (float): Maximum canopy cover (fraction of soil cover)
+        CCx (float): Maximum canopy cover (fraction of soil cover) In theory thi should be  CCxadj
 
         CGC (float): Canopy growth coefficient (fraction per gdd)
 
