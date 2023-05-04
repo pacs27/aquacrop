@@ -14,7 +14,7 @@ def cc_development(
     CDC: float,
     dt: float,
     Mode: str,
-    CCx0: float,
+    CCx0: float = None,
     ) -> float:
 
     """
