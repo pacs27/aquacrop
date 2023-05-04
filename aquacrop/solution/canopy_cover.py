@@ -82,7 +82,7 @@ def canopy_cover(
     initial_cc = initialCond.canopy_cover  # initial canopy cover
     initial_protected_seed = initialCond.protected_seed
     initial_CCxAct = initialCond.ccx_act
-    initial_is_crop_dead = initialCond.is_crop_dead  # Is crop dead? (True, False)
+    initial_is_crop_dead = initialCond.crop_dead  # Is crop dead? (True, False)
     initial_tEarlySen = initialCond.t_early_sen
     initial_CCxW = initialCond.ccx_w
     initial_canopy_cover_emergence_CC0_adj = initialCond.cc0_adj
