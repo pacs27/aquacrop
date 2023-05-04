@@ -118,15 +118,15 @@ def canopy_cover(
             aeration_stress=aeration_stress,
             crop=crop,
             et0=et0,
-            initial_dap = dap,
-            initial_delayed_cds = delayed_cds,
-            initial_gdd_cum = gdd_cum,
-            initial_delayed_gdds = delayed_gdds,
-            initial_cc_ns = initial_cc_ns,
-            initial_ccx_act_ns = initial_CCxAct,
-            initial_cc = initial_cc,
-            initial_canopy_cover_emergence_CC0_adj =initial_canopy_cover_emergence_CC0_adj,
-            )
+            initial_dap=dap,
+            initial_delayed_cds=delayed_cds,
+            initial_gdd_cum=gdd_cum,
+            initial_delayed_gdds=delayed_gdds,
+            initial_cc_ns=initial_cc_ns,
+            initial_ccx_act_ns=initial_CCxAct,
+            initial_cc=initial_cc,
+            initial_canopy_cover_emergence_CC0_adj=initial_canopy_cover_emergence_CC0_adj,
+        )
 
     else:
         # No canopy outside growing season - set various values to zero
@@ -158,19 +158,19 @@ def canopy_cover_grow(
     initial_cc_ns,
     initial_ccx_act_ns,
     initial_cc,
-    initial_canopy_cover_emergence_CC0_adj
+    initial_canopy_cover_emergence_CC0_adj,
 ):
     # Parameters needed
-    
+
     crop_time_to_emergence = crop.Emergence
-    crop_time_to_maturity   = crop.Maturity
+    crop_time_to_maturity = crop.Maturity
     crop_time_to_canopy_end_development = crop.CanopyEnd
     crop_time_to_senescense = crop.Senescence
     canopy_cover_emergence_CC0 = crop.CC0
-    maximun_canopy_cover_CCx    = crop.CCx
-    canopy_growth_coefficient_CGC   = crop.CGC
-    canopy_decline_coefficient_CDC  = crop.CDC
-    
+    maximun_canopy_cover_CCx = crop.CCx
+    canopy_growth_coefficient_CGC = crop.CGC
+    canopy_decline_coefficient_CDC = crop.CDC
+
     # Calculate root zone water content
     taw = TAW()
     root_zone_depletion = Dr()
@@ -236,22 +236,21 @@ def canopy_cover_grow(
 
     ## Canopy development (potential) ##
     canopy_cover_ns, ccx_w_ns, ccx_act_ns = calculate_potential_canopy_cover(
-         time_canopy_cover_adjusted,
-    crop_time_to_emergence,
-    crop_time_to_maturity,
-    crop_time_to_canopy_end_development,
-    crop_time_to_senescense,
-    initial_cc_ns,
-    canopy_cover_emergence_CC0,
-    maximun_canopy_cover_CCx,
-    
-    canopy_growth_coefficient_CGC,
-    canopy_decline_coefficient_CDC,
-    time_delta_of_canopy_growth,
-    initial_ccx_act_ns,
+        time_canopy_cover_adjusted,
+        crop_time_to_emergence,
+        crop_time_to_maturity,
+        crop_time_to_canopy_end_development,
+        crop_time_to_senescense,
+        initial_cc_ns,
+        canopy_cover_emergence_CC0,
+        maximun_canopy_cover_CCx,
+        canopy_growth_coefficient_CGC,
+        canopy_decline_coefficient_CDC,
+        time_delta_of_canopy_growth,
+        initial_ccx_act_ns,
     )
     canopy_cover, cc0_adj, ccx_act = calculate_actual_canopy_cover(
-        canopy_growth_coefficient_CGC, 
+        canopy_growth_coefficient_CGC,
         water_stress_coef.exp,
         initial_cc,
         canopy_cover_emergence_CC0,
@@ -261,34 +260,42 @@ def canopy_cover_grow(
         time_delta_of_canopy_growth,
         time_canopy_cover_adjusted,
         crop_time_to_emergence,
-        crop_time_to_canopy_end_development
+        crop_time_to_canopy_end_development,
     )
-    
-    if  time_canopy_cover_adjusted >= crop_time_to_emergence) and ((time_canopy_cover_adjusted < crop_time_to_senescense) or  (initial_tEarlySen > 0)):
+
+    if (time_canopy_cover_adjusted >= crop_time_to_emergence) and (
+        (time_canopy_cover_adjusted < crop_time_to_senescense)
+        or (initial_tEarlySen > 0)
+    ):
         calculate_actual_canopy_senescence_due_to_water_stress()
-    
-    
+
     ## Calculate canopy size adjusted for micro-advective effects ##
     # Check to ensure potential canopy_cover is not slightly lower than actual
-    canopy_cover_ns, ccx_act_ns = calculate_canopy_cover_adjusted_for_micro_advective_effects(canopy_cover_ns, canopy_cover,
-                                                                                              crop_time_to_canopy_end_development,
-                                                                                              time_canopy_cover_adjusted)
-    
-    
+    (
+        canopy_cover_ns,
+        ccx_act_ns,
+    ) = calculate_canopy_cover_adjusted_for_micro_advective_effects(
+        canopy_cover_ns,
+        canopy_cover,
+        crop_time_to_canopy_end_development,
+        time_canopy_cover_adjusted,
+    )
+
     canopy_cover_adj = calculate_canopy_cover_adjusted(canopy_cover)
     canopy_cover_adj_ns = calculate_canopy_cover_adjusted(canopy_cover_ns)
-    
-    return (canopy_cover,
-    canopy_cover_adj,
-    canopy_cover_ns,
-    canopy_cover_adj_ns,
-    ccx_w,
-    ccx_act,
-    ccx_w_ns,
-    ccx_act_ns
-)
-    
-  
+
+    return (
+        canopy_cover,
+        canopy_cover_adj,
+        canopy_cover_ns,
+        canopy_cover_adj_ns,
+        ccx_w,
+        ccx_act,
+        ccx_w_ns,
+        ccx_act_ns,
+    )
+
+
 def choose_between_root_zone_or_top_soil_depletions(root_zone_depletion, taw):
     # Check whether to use root zone or top soil depletions for calculating
     # water stress
@@ -392,12 +399,14 @@ def calculate_slow_canopy_development(
     )
     return canopy_cover
 
+
 def is_in_mid_season_stage(time_canopy_cover_adjusted, crop_time_to_senescense):
     if time_canopy_cover_adjusted < crop_time_to_senescense:
         return True
     else:
         return False
-    
+
+
 def calculate_potential_canopy_cover(
     time_canopy_cover_adjusted,
     crop_time_to_emergence,
@@ -407,7 +416,6 @@ def calculate_potential_canopy_cover(
     initial_cc_ns,
     canopy_cover_emergence_CC0,
     maximun_canopy_cover_CCx,
-    
     canopy_growth_coefficient_CGC,
     canopy_decline_coefficient_CDC,
     time_delta_of_canopy_growth,
@@ -418,7 +426,7 @@ def calculate_potential_canopy_cover(
     ):
         canopy_cover_ns = 0
         cc0_adj = 0
-        
+
     elif can_be_canopy_growth(
         time_canopy_cover_adjusted, crop_time_to_canopy_end_development
     ):
@@ -429,79 +437,94 @@ def calculate_potential_canopy_cover(
                 time_delta_of_canopy_growth,
             )
         else:
-            canopy_cover_growth_time_tCC = time_canopy_cover_adjusted - crop_time_to_emergence
-            stage_canopy_cover_development = "Growth" #stage of Canopy developement (Growth or Decline)
-            canopy_cover_ns = cc_development(
-                CCo = canopy_cover_emergence_CC0,
-                CCx =0.98 * maximun_canopy_cover_CCx,
-                CGC = canopy_growth_coefficient_CGC,
-                CDC =canopy_decline_coefficient_CDC,
-                dt =canopy_cover_growth_time_tCC,
-                Mode = stage_canopy_cover_development,
-                CCx0 = maximun_canopy_cover_CCx,
+            canopy_cover_growth_time_tCC = (
+                time_canopy_cover_adjusted - crop_time_to_emergence
             )
-         # Update maximum canopy cover size in growing season
+            stage_canopy_cover_development = (
+                "Growth"  # stage of Canopy developement (Growth or Decline)
+            )
+            canopy_cover_ns = cc_development(
+                CCo=canopy_cover_emergence_CC0,
+                CCx=0.98 * maximun_canopy_cover_CCx,
+                CGC=canopy_growth_coefficient_CGC,
+                CDC=canopy_decline_coefficient_CDC,
+                dt=canopy_cover_growth_time_tCC,
+                Mode=stage_canopy_cover_development,
+                CCx0=maximun_canopy_cover_CCx,
+            )
+        # Update maximum canopy cover size in growing season
         ccx_act_ns = canopy_cover_ns
     else:
         # No more canopy growth is possible or canopy in decline
         # Set CCx for calculation of withered canopy effects
         ccx_w_ns = initial_ccx_act_ns
-        if(is_in_mid_season_stage(time_canopy_cover_adjusted, crop_time_to_senescense)):
+        if is_in_mid_season_stage(time_canopy_cover_adjusted, crop_time_to_senescense):
             # Mid-season stage - no canopy growth
             canopy_cover_ns = initial_cc_ns
             # Update maximum canopy cover size in growing season
             ccx_act_ns = canopy_cover_ns
         else:
-             # Late-season stage - canopy decline
-            canopy_cover_growth_time_tCC = time_canopy_cover_adjusted - crop_time_to_senescense
-            stage_canopy_cover_development ="Decline" #stage of Canopy developement (Growth or Decline)
+            # Late-season stage - canopy decline
+            canopy_cover_growth_time_tCC = (
+                time_canopy_cover_adjusted - crop_time_to_senescense
+            )
+            stage_canopy_cover_development = (
+                "Decline"  # stage of Canopy developement (Growth or Decline)
+            )
 
             canopy_cover_ns = cc_development(
-                CCo = canopy_cover_emergence_CC0,
-                CCx =ccx_act_ns,
-                CGC =canopy_growth_coefficient_CGC,
-                CDC =canopy_decline_coefficient_CDC,
-                dt =canopy_cover_growth_time_tCC,
-                Mode =stage_canopy_cover_development
-                CCx0 = initial_ccx_act_ns,
+                CCo=canopy_cover_emergence_CC0,
+                CCx=ccx_act_ns,
+                CGC=canopy_growth_coefficient_CGC,
+                CDC=canopy_decline_coefficient_CDC,
+                dt=canopy_cover_growth_time_tCC,
+                Mode=stage_canopy_cover_development,
+                CCx0=initial_ccx_act_ns,
             )
-        
-        return canopy_cover_ns, cc0_adj,  ccx_w_ns, ccx_act_ns
-    
-def slow_actual_canopy_development(initial_cc, initial_canopy_cover_emergence_CC0_adj, initial_protected_seed):
+
+        return canopy_cover_ns, cc0_adj, ccx_w_ns, ccx_act_ns
+
+
+def slow_actual_canopy_development(
+    initial_cc, initial_canopy_cover_emergence_CC0_adj, initial_protected_seed
+):
     if initial_cc <= initial_canopy_cover_emergence_CC0_adj or (
-            (initial_protected_seed == True)
-            and (initial_cc <= (1.25 * initial_canopy_cover_emergence_CC0_adj))
-        ):
+        (initial_protected_seed == True)
+        and (initial_cc <= (1.25 * initial_canopy_cover_emergence_CC0_adj))
+    ):
         return True
     else:
         return False
 
-def calculate_slow_canopy_development_with_protected_seed(time_canopy_cover_adjusted,
-                                                          crop_time_to_emergence, canopy_cover_emergence_CC0,
-                                                          maximun_canopy_cover_CCx,
-                                                          canopy_growth_coefficient_CGC,
-                                                          canopy_decline_coefficient_CDC,
-                                                          initial_canopy_cover_emergence_CC0_adj
-                                                          ):
+
+def calculate_slow_canopy_development_with_protected_seed(
+    time_canopy_cover_adjusted,
+    crop_time_to_emergence,
+    canopy_cover_emergence_CC0,
+    maximun_canopy_cover_CCx,
+    canopy_growth_coefficient_CGC,
+    canopy_decline_coefficient_CDC,
+    initial_canopy_cover_emergence_CC0_adj,
+):
     time_canopy_cover_growing = time_canopy_cover_adjusted - crop_time_to_emergence
     canopy_cover = cc_development(
         canopy_cover_emergence_CC0,
-        maximun_canopy_cover_CCx, 
-        canopy_growth_coefficient_CGC, 
-        canopy_decline_coefficient_CDC, 
-        time_canopy_cover_growing, 
-        "Growth"
+        maximun_canopy_cover_CCx,
+        canopy_growth_coefficient_CGC,
+        canopy_decline_coefficient_CDC,
+        time_canopy_cover_growing,
+        "Growth",
     )
     # Check if seed protection should be turned off
     if canopy_cover > (1.25 * initial_canopy_cover_emergence_CC0_adj):
         # Turn off seed protection - lead expansion stress can
         # occur on future time steps.
         protected_seed = False
-    else: 
+    else:
         protected_seed = True
-    
+
     return canopy_cover, protected_seed
+
 
 def is_canopy_approaching_maximun_size(initial_canopy_cover, maximun_canopy_cover_CCx):
     if initial_canopy_cover >= (0.9799 * maximun_canopy_cover_CCx):
@@ -509,21 +532,26 @@ def is_canopy_approaching_maximun_size(initial_canopy_cover, maximun_canopy_cove
     else:
         return False
 
-def calculate_normal_canopy_growth_with_water_stress_effects(canopy_growth_coefficient_CGC, water_stress_coef_exp,
-                                                             initial_cc,
-                                                             canopy_cover_emergence_CC0,
-                                                             initial_canopy_cover_emergence_CC0_adj,
-                                                             maximun_canopy_cover_CCx,
-                                                             canopy_decline_coefficient_CDC,
-                                                             time_delta_of_canopy_growth,
-                                                             time_canopy_cover_adjusted,
-                                                             crop_time_to_emergence,
-                                                             crop_time_to_canopy_end_development
-                                                             ):
+
+def calculate_normal_canopy_growth_with_water_stress_effects(
+    canopy_growth_coefficient_CGC,
+    water_stress_coef_exp,
+    initial_cc,
+    canopy_cover_emergence_CC0,
+    initial_canopy_cover_emergence_CC0_adj,
+    maximun_canopy_cover_CCx,
+    canopy_decline_coefficient_CDC,
+    time_delta_of_canopy_growth,
+    time_canopy_cover_adjusted,
+    crop_time_to_emergence,
+    crop_time_to_canopy_end_development,
+):
     # Adjust canopy growth coefficient for leaf expansion water
     # stress effects
-    canopy_growth_coefficient_CGC_adj = canopy_growth_coefficient_CGC * water_stress_coef_exp
-    
+    canopy_growth_coefficient_CGC_adj = (
+        canopy_growth_coefficient_CGC * water_stress_coef_exp
+    )
+
     if canopy_growth_coefficient_CGC_adj > 0:
         # Adjust CCx for change in CGC
         maximun_canopy_cover_CCx_adj = adjust_CCx(
@@ -541,13 +569,17 @@ def calculate_normal_canopy_growth_with_water_stress_effects(canopy_growth_coeff
             canopy_cover = initial_cc
         elif abs(initial_cc - (0.9799 * maximun_canopy_cover_CCx)) < 0.001:
             # Approaching maximum canopy cover size
-            canopy_cover_growth_time_tCC = time_canopy_cover_adjusted - crop_time_to_emergence
-            stage_canopy_cover_development = "Growth" #stage of Canopy developement (Growth or Decline)
+            canopy_cover_growth_time_tCC = (
+                time_canopy_cover_adjusted - crop_time_to_emergence
+            )
+            stage_canopy_cover_development = (
+                "Growth"  # stage of Canopy developement (Growth or Decline)
+            )
 
             canopy_cover = cc_development(
-               canopy_cover_emergence_CC0,
-               maximun_canopy_cover_CCx,
-               canopy_growth_coefficient_CGC,
+                canopy_cover_emergence_CC0,
+                maximun_canopy_cover_CCx,
+                canopy_growth_coefficient_CGC,
                 canopy_decline_coefficient_CDC,
                 canopy_cover_growth_time_tCC,
                 stage_canopy_cover_development,
@@ -556,16 +588,24 @@ def calculate_normal_canopy_growth_with_water_stress_effects(canopy_growth_coeff
         else:
             # Determine time required to reach canopy_cover on previous,
             # day, given CGCAdj value
-            
+
             time_mode = "CGC"
             time_required_reach_canopy_cover = cc_required_time(
-                initial_cc, initial_canopy_cover_emergence_CC0_adj, maximun_canopy_cover_CCx_adj, canopy_growth_coefficient_CGC_adj, 
-                canopy_decline_coefficient_CDC, time_mode
+                initial_cc,
+                initial_canopy_cover_emergence_CC0_adj,
+                maximun_canopy_cover_CCx_adj,
+                canopy_growth_coefficient_CGC_adj,
+                canopy_decline_coefficient_CDC,
+                time_mode,
             )
             if time_required_reach_canopy_cover > 0:
                 # Calclate gdd's for canopy growth
-                canopy_cover_growth_time_tCC = time_required_reach_canopy_cover + time_delta_of_canopy_growth
-                stage_canopy_cover_development = "Growth" #stage of Canopy developement (Growth or Decline)
+                canopy_cover_growth_time_tCC = (
+                    time_required_reach_canopy_cover + time_delta_of_canopy_growth
+                )
+                stage_canopy_cover_development = (
+                    "Growth"  # stage of Canopy developement (Growth or Decline)
+                )
 
                 # Determine new canopy size
                 canopy_cover = cc_development(
@@ -574,7 +614,7 @@ def calculate_normal_canopy_growth_with_water_stress_effects(canopy_growth_coeff
                     canopy_growth_coefficient_CGC_adj,
                     canopy_decline_coefficient_CDC,
                     canopy_cover_growth_time_tCC,
-                    stage_canopy_cover_development
+                    stage_canopy_cover_development,
                 )
 
             else:
@@ -584,15 +624,16 @@ def calculate_normal_canopy_growth_with_water_stress_effects(canopy_growth_coeff
     else:
         # No canopy growth
         canopy_cover = initial_cc
-        
+
         # Update CC0
         if canopy_cover > initial_canopy_cover_emergence_CC0_adj:
             cc0_adj = canopy_cover_emergence_CC0
         else:
-           cc0_adj = canopy_cover
-    
+            cc0_adj = canopy_cover
+
     return canopy_cover, cc0_adj
-    
+
+
 def calculate_actual_canopy_cover(
     time_canopy_cover_adjusted,
     crop_time_to_emergence,
@@ -604,42 +645,53 @@ def calculate_actual_canopy_cover(
     canopy_cover_emergence_CC0,
     maximun_canopy_cover_CCx,
     initial_protected_seed,
-     canopy_growth_coefficient_CGC,
+    canopy_growth_coefficient_CGC,
     canopy_decline_coefficient_CDC,
     time_delta_of_canopy_growth,
     water_stress_coef_exp,
     initial_CCxAct,
-    initial_is_crop_dead
+    initial_is_crop_dead,
 ):
     if not can_be_canopy_cover_development(
         time_canopy_cover_adjusted, crop_time_to_emergence, crop_time_to_maturity
     ):
         canopy_cover = 0
         cc0_adj = 0
-    
+
     elif can_be_canopy_growth(
         time_canopy_cover_adjusted, crop_time_to_canopy_end_development
     ):
-        if(slow_actual_canopy_development(initial_cc, initial_canopy_cover_emergence_CC0_adj, initial_protected_seed)):
-             # Very small initial canopy_cover or seedling in protected phase of
+        if slow_actual_canopy_development(
+            initial_cc, initial_canopy_cover_emergence_CC0_adj, initial_protected_seed
+        ):
+            # Very small initial canopy_cover or seedling in protected phase of
             # growth. In this case, assume no leaf water expansion stress
             if initial_protected_seed == True:
-                canopy_cover, protected_seed = calculate_slow_canopy_development_with_protected_seed(
+                (
+                    canopy_cover,
+                    protected_seed,
+                ) = calculate_slow_canopy_development_with_protected_seed(
                     time_canopy_cover_adjusted,
-                    crop_time_to_emergence, canopy_cover_emergence_CC0,
+                    crop_time_to_emergence,
+                    canopy_cover_emergence_CC0,
                     maximun_canopy_cover_CCx,
                     canopy_growth_coefficient_CGC,
                     canopy_decline_coefficient_CDC,
-                    initial_canopy_cover_emergence_CC0_adj
+                    initial_canopy_cover_emergence_CC0_adj,
                 )
             else:
                 canopy_cover = initial_canopy_cover_emergence_CC0_adj * np.exp(
                     canopy_growth_coefficient_CGC * time_delta_of_canopy_growth
                 )
-            
+
         else:
-            if not is_canopy_approaching_maximun_size(initial_cc, maximun_canopy_cover_CCx):
-                canopy_cover, cc0_adj = calculate_normal_canopy_growth_with_water_stress_effects(
+            if not is_canopy_approaching_maximun_size(
+                initial_cc, maximun_canopy_cover_CCx
+            ):
+                (
+                    canopy_cover,
+                    cc0_adj,
+                ) = calculate_normal_canopy_growth_with_water_stress_effects(
                     canopy_growth_coefficient_CGC,
                     water_stress_coef_exp,
                     initial_cc,
@@ -650,47 +702,57 @@ def calculate_actual_canopy_cover(
                     time_delta_of_canopy_growth,
                     time_canopy_cover_adjusted,
                     crop_time_to_emergence,
-                    crop_time_to_canopy_end_development
+                    crop_time_to_canopy_end_development,
                 )
             else:
-               # Canopy approaching maximum size
-                canopy_cover_growth_time_tCC = time_canopy_cover_adjusted - crop_time_to_emergence
-                stage_canopy_cover_development = "Growth" #stage of Canopy developement (Growth or Decline)
-                canopy_cover = cc_development(
-                   canopy_cover_emergence_CC0, maximun_canopy_cover_CCx, canopy_growth_coefficient_CGC, canopy_decline_coefficient_CDC, canopy_cover_growth_time_tCC, stage_canopy_cover_development
+                # Canopy approaching maximum size
+                canopy_cover_growth_time_tCC = (
+                    time_canopy_cover_adjusted - crop_time_to_emergence
                 )
-                
+                stage_canopy_cover_development = (
+                    "Growth"  # stage of Canopy developement (Growth or Decline)
+                )
+                canopy_cover = cc_development(
+                    canopy_cover_emergence_CC0,
+                    maximun_canopy_cover_CCx,
+                    canopy_growth_coefficient_CGC,
+                    canopy_decline_coefficient_CDC,
+                    canopy_cover_growth_time_tCC,
+                    stage_canopy_cover_development,
+                )
+
                 cc0_adj = canopy_cover_emergence_CC0
-            
-        
-       
+
         if canopy_cover > initial_CCxAct:
             # Update actual maximum canopy cover size during growing season
             ccx_act = canopy_cover
 
         # return canopy_cover, cc0_adj, ccx_act
 
-        
     else:
         # No more canopy growth is possible or canopy is in decline
         if is_in_mid_season_stage(time_canopy_cover_adjusted, crop_time_to_senescense):
             # Mid-season stage - no canopy growth
             canopy_cover = initial_cc
-            
+
             if canopy_cover > initial_CCxAct:
                 # Update actual maximum canopy cover size during growing season
                 ccx_act = canopy_cover
-        
+
         else:
             # Late-season stage - canopy decline
             # Adjust canopy decline coefficient for difference between actual
             # and potential CCx
-            canopy_decline_coefficient_CDC_adj = canopy_decline_coefficient_CDC * ((initial_CCxAct + 2.29) / (maximun_canopy_cover_CCx + 2.29) )
+            canopy_decline_coefficient_CDC_adj = canopy_decline_coefficient_CDC * (
+                (initial_CCxAct + 2.29) / (maximun_canopy_cover_CCx + 2.29)
+            )
             # Determine new canopy size
-            canopy_cover_growth_time_tCC = time_canopy_cover_adjusted - crop_time_to_senescense
-            
-            stage_canopy_cover_development ="Decline"
-            
+            canopy_cover_growth_time_tCC = (
+                time_canopy_cover_adjusted - crop_time_to_senescense
+            )
+
+            stage_canopy_cover_development = "Decline"
+
             canopy_cover = cc_development(
                 initial_canopy_cover_emergence_CC0_adj,
                 initial_CCxAct,
@@ -700,14 +762,14 @@ def calculate_actual_canopy_cover(
                 stage_canopy_cover_development,
                 initial_CCxAct,
             )
-        
+
         # Check for crop growth termination
         if (canopy_cover < 0.001) and (initial_is_crop_dead == False):
             # crop has died
             canopy_cover = 0
             crop_dead = True
-        
-    
+
+
 def calculate_actual_canopy_senescence_due_to_water_stress(
     water_stress_coef_sen,
     initial_protected_seed,
@@ -727,43 +789,43 @@ def calculate_actual_canopy_senescence_due_to_water_stress(
     initial_canopy_cover,
     initial_is_crop_dead,
     initial_cc0_adj,
-    initial_CCxW
-    ):
-    
+    initial_CCxW,
+):
     if (water_stress_coef_sen < 1) and (initial_protected_seed == False):
         # early canopy senescence due to severe water stress
         premature_senescence = True
-        
+
         if initial_tEarlySen == 0:
             # No prior early senescence
             initial_ccx_early_sen = initial_cc
-        
+
         # Increment early senescence gdd counter
         t_early_sen = initial_tEarlySen + time_delta_of_canopy_growth
-        
+
         # Adjust canopy decline coefficient for water stress
         beta = False
-        
-        
+
         water_stress_coef = calculate_water_stress(
-        crop_p_up=crop.P_up,
-        crop_p_lo=crop.P_lo,
-        crop_ETadj=crop.ETadj,
-        crop_beta=crop.beta,
-        crop_fshape_w=crop.fshape_w,
-        initial_t_early_sen=t_early_sen,
-        root_zone_depletion=root_zone_depletion,
-        taw=taw,
-        et0=et0,
-        beta=False,
-     )
-    
+            crop_p_up=crop.P_up,
+            crop_p_lo=crop.P_lo,
+            crop_ETadj=crop.ETadj,
+            crop_beta=crop.beta,
+            crop_fshape_w=crop.fshape_w,
+            initial_t_early_sen=t_early_sen,
+            root_zone_depletion=root_zone_depletion,
+            taw=taw,
+            et0=et0,
+            beta=False,
+        )
+
         # water_stress_coef = water_stress(crop, NewCond, root_zone_depletion, taw, et0, beta)
         if water_stress_coef.sen > 0.99999:
             canopy_decline_coefficient_CDC_adj = 0.0001
         else:
-            canopy_decline_coefficient_CDC_adj = (1 - (water_stress_coef.sen**8)) * canopy_decline_coefficient_CDC
-        
+            canopy_decline_coefficient_CDC_adj = (
+                1 - (water_stress_coef.sen**8)
+            ) * canopy_decline_coefficient_CDC
+
         # Get new canpy cover size after senescence
         if initial_ccx_early_sen < 0.001:
             # No prior early senescence
@@ -772,12 +834,17 @@ def calculate_actual_canopy_senescence_due_to_water_stress(
             # Get time required to reach canopy_cover at end of previous day, given
             # CDCadj
             time_required_reach_canopy_cover = (
-                            np.log(1 + (1 - initial_cc / initial_ccx_early_sen) / 0.05)
-                        ) / ((canopy_decline_coefficient_CDC_adj * 3.33) / (initial_ccx_early_sen + 2.29))
+                np.log(1 + (1 - initial_cc / initial_ccx_early_sen) / 0.05)
+            ) / (
+                (canopy_decline_coefficient_CDC_adj * 3.33)
+                / (initial_ccx_early_sen + 2.29)
+            )
 
-            # Calculate gdd's for canopy decline 
-            # TODO: It the variable name correct? 
-            canopy_cover_growth_time_tCC = time_required_reach_canopy_cover + time_delta_of_canopy_growth
+            # Calculate gdd's for canopy decline
+            # TODO: It the variable name correct?
+            canopy_cover_growth_time_tCC = (
+                time_required_reach_canopy_cover + time_delta_of_canopy_growth
+            )
             # Determine new canopy size
             canopy_cover_sen = initial_ccx_early_sen * (
                 1
@@ -785,15 +852,17 @@ def calculate_actual_canopy_senescence_due_to_water_stress(
                 * (
                     np.exp(
                         canopy_cover_growth_time_tCC
-                        * ((canopy_decline_coefficient_CDC_adj * 3.33) / (initial_ccx_early_sen + 2.29))
+                        * (
+                            (canopy_decline_coefficient_CDC_adj * 3.33)
+                            / (initial_ccx_early_sen + 2.29)
+                        )
                     )
                     - 1
                 )
             )
             if canopy_cover_sen < 0:
                 canopy_cover_sen = 0
-            
-            
+
         # Update canopy cover size
         if time_canopy_cover_adjusted < crop_time_to_senescense:
             # Limit canopy_cover to CCx
@@ -802,14 +871,14 @@ def calculate_actual_canopy_senescence_due_to_water_stress(
 
             # canopy_cover cannot be greater than value on previous day
             canopy_cover = canopy_cover_sen
-            
+
             if canopy_cover > initial_cc:
                 canopy_cover = initial_cc
 
             # Update maximum canopy cover size during growing
             # season
             ccx_act = canopy_cover
-            
+
             # Update CC0 if current canopy_cover is less than initial canopy
             # cover size at planting
             if canopy_cover < canopy_cover_emergence_CC0:
@@ -822,14 +891,14 @@ def calculate_actual_canopy_senescence_due_to_water_stress(
             # to water stress
             if canopy_cover_sen < initial_canopy_cover:
                 canopy_cover = canopy_cover_sen
-        
+
         # Check for crop growth termination
         if (canopy_cover < 0.001) and (initial_is_crop_dead == False):
             # crop has died
             canopy_cover = 0
             crop_dead = True
     else:
-         # No water stress
+        # No water stress
         premat_senes = False
         if (time_canopy_cover_adjusted > crop_time_to_senescense) and (
             initial_tEarlySen > 0
@@ -841,9 +910,10 @@ def calculate_actual_canopy_senescence_due_to_water_stress(
                 - time_delta_of_canopy_growth
                 - crop_time_to_senescense
             )
-            maximun_canopy_cover_CCx_adj, canopy_decline_coefficient_CDC_adj = update_CCx_CDC(
-                initial_cc, crop.CDC, crop.CCx, tmp_tCC
-            )
+            (
+                maximun_canopy_cover_CCx_adj,
+                canopy_decline_coefficient_CDC_adj,
+            ) = update_CCx_CDC(initial_cc, crop.CDC, crop.CCx, tmp_tCC)
             ccx_act = maximun_canopy_cover_CCx
             # Get new canopy_cover value for end of current day
             tmp_tCC = time_canopy_cover_adjusted - crop.Senescence
@@ -856,11 +926,9 @@ def calculate_actual_canopy_senescence_due_to_water_stress(
                 "Decline",
                 maximun_canopy_cover_CCx_adj,
             )
-            
+
             # Check for crop growth termination
-            if (canopy_cover < 0.001) and (
-                initial_is_crop_dead == False
-            ):
+            if (canopy_cover < 0.001) and (initial_is_crop_dead == False):
                 canopy_cover = 0
                 crop_dead = True
 
@@ -870,30 +938,27 @@ def calculate_actual_canopy_senescence_due_to_water_stress(
     # Adjust CCx for effects of withered canopy
     if canopy_cover > initial_CCxW:
         ccx_w = canopy_cover
-        
-    
+
     return canopy_cover, crop_dead, ccx_act, cc0_adj, ccx_w, t_early_sen, premat_senes
-        
+
+
 def calculate_canopy_cover_adjusted_for_micro_advective_effects(
-    canopy_cover_ns, 
+    canopy_cover_ns,
     canopy_cover,
-crop_time_to_canopy_end_development,
-time_canopy_cover_adjusted,
-ccx_act_ns
+    crop_time_to_canopy_end_development,
+    time_canopy_cover_adjusted,
+    ccx_act_ns,
 ):
     if canopy_cover_ns < canopy_cover:
         canopy_cover_ns = canopy_cover
         if time_canopy_cover_adjusted < crop_time_to_canopy_end_development:
             ccx_act_ns = canopy_cover_ns
-    
+
     return canopy_cover_ns, ccx_act_ns
+
 
 def calculate_canopy_cover_adjusted(canopy_cover):
     canopy_cover_adj = (
-        (1.72 * canopy_cover)
-        - (canopy_cover**2)
-        + (0.3 * (canopy_cover**3))
+        (1.72 * canopy_cover) - (canopy_cover**2) + (0.3 * (canopy_cover**3))
     )
     return canopy_cover_adj
-
- 
