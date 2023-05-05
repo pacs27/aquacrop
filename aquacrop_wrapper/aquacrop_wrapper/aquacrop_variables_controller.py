@@ -10,7 +10,6 @@ if TYPE_CHECKING:
     from aquacrop.entities.initParamVariables import InitialCondition
     from aquacrop.entities.paramStruct import ParamStruct
     from aquacrop.entities.output import Output
-    from aquacrop.entities.irrigationManagement import IrrigationManagement
 
 try:
     from constants import AquacropConstants
@@ -38,8 +37,8 @@ class AquacropVariablesController:
     def variables_controller_interface(self, clock_struct: "ClockStruct",
                                        init_cond: "InitialCondition",
                                        param_struct: "ParamStruct",
-                                       outputs: "Output",
-                                       irrigation: "IrrigationManagement"):
+                                       outputs: "Output"
+                                    ):
         """ Note: This function is called by the AquaCrop model and should not be called directly.
                 It also depends on this library's implementation of the AquaCrop model. The implementation
                 of this function is inside the while loop of the core file in aquacrop.
@@ -51,23 +50,23 @@ class AquacropVariablesController:
         """
         # datetime.datetime.date(clock_struct.planting_dates[0])
         # clock_struct.current_simulation_date
-        (clock_struct, init_cond, param_struct, outputs, irrigation) = self.body_interface(
-            clock_struct, init_cond, param_struct, outputs, irrigation)
+        (clock_struct, init_cond, param_struct, outputs) = self.body_interface(
+            clock_struct, init_cond, param_struct, outputs)
 
-        return (clock_struct, init_cond, param_struct, outputs, irrigation)
+        return (clock_struct, init_cond, param_struct, outputs)
 
-    def body_interface(self, clock_struct: "ClockStruct", init_cond: "InitialCondition", param_struct: "ParamStruct", outputs: "Output", irrigation: "IrrigationManagement"):
+    def body_interface(self, clock_struct: "ClockStruct", init_cond: "InitialCondition", param_struct: "ParamStruct", outputs: "Output"):
 
         if (self.simulation_types == AquacropConstants.SIMULATION_TYPES["normal_simulation"]):
-            return (clock_struct, init_cond, param_struct, outputs, irrigation)
+            return (clock_struct, init_cond, param_struct, outputs)
         elif (self.simulation_types == AquacropConstants.SIMULATION_TYPES["real_time_update"]):
-            return self.simulation_until_today(clock_struct, init_cond, param_struct, outputs, irrigation)
+            return self.simulation_until_today(clock_struct, init_cond, param_struct, outputs)
         else:
-            return (clock_struct, init_cond, param_struct, outputs, irrigation)
+            return (clock_struct, init_cond, param_struct, outputs)
 
     def simulation_until_today(self, clock_struct: "ClockStruct",
                                init_cond: "InitialCondition",
-                               param_struct: "ParamStruct", outputs: "Output", irrigation: "IrrigationManagement"):
+                               param_struct: "ParamStruct", outputs: "Output"):
         """This function is called when the simulation type is "simulation_until_today"
             This function is used to run the simulation until the current date.
             The simulation will be updated with the current values of the variables and will continue
@@ -86,12 +85,12 @@ class AquacropVariablesController:
             
         current_simulation_date = clock_struct.current_simulation_date
         # transform to foarmat day-month-year
-        current_simulation_date = current_simulation_date.strftime("%d-%m-%Y")
+        current_simulation_date_str = current_simulation_date.strftime("%d-%m-%Y")
         
         cameras_data = self.cameras_data_df
         
         # select the same day-month-year as current_simulation_date
-        cameras_data = cameras_data[cameras_data["day-month-year"] == current_simulation_date]
+        cameras_data = cameras_data[cameras_data["day-month-year"] == current_simulation_date_str]
         
         real_canopy_cover = 0
          # check if the cameras_data is empty
@@ -99,13 +98,27 @@ class AquacropVariablesController:
             real_canopy_cover = float(cameras_data["canopyCover"].iloc[0])/100
         
         if(init_cond.canopy_cover > 0):
-            if real_canopy_cover:
+            if real_canopy_cover and real_canopy_cover > 0:
                 init_cond.canopy_cover = real_canopy_cover
+        
+        # TODO: DELETE!!!!!!!!!!!
+        # date_now = datetime.datetime(2023, 4, 1)
         
         
         # SEE IF THE SIMULATION IS PERFOMING IN THE FUTURE
-        if (date_now > current_simulation_date):
-            irrigation.irrigation_method
-            
+        # if (date_now.date() < current_simulation_date):
+        #     param_struct.IrrMngt.irrigation_method = 1 # 1 = SOIL MOISTURE TARGETS
         
-        return (clock_struct, init_cond, param_struct, outputs, irrigation)
+        # TODO: DELETE!!!!!!!!!!!  
+        # date2 = datetime.datetime(2023, 5, 1)
+        # date3 = datetime.datetime(2023, 5, 30)
+        # if(current_simulation_date > date2.date()):
+        #     param_struct.IrrMngt.irrigation_method = 0
+        # if(current_simulation_date > date3.date()):
+        #     param_struct.IrrMngt.irrigation_method = 1
+        # # if (current_simulation_date > date3):
+        #     param_struct.IrrMngt.irrigation_method = 1 # 1 = SOIL MOISTURE TARGETS
+        # else:
+        #     param_struct.IrrMngt.irrigation_method = 0
+            
+        return (clock_struct, init_cond, param_struct, outputs)

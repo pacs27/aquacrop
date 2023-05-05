@@ -19,7 +19,7 @@ class TestAquacropWrapper(unittest.TestCase):
     """
     Simple test of AquacropModel
     """
-    
+   
     _weather_file_path = get_filepath("tunis_climate.txt")
 
     _weather_data = prepare_weather(_weather_file_path)
@@ -59,7 +59,7 @@ class TestAquacropWrapper(unittest.TestCase):
     def test_compare_rainfed_and_irrigated(self):
         """
         Test final statistics
-        """
+        """   """
         SOIL_MOISTURE_METHOD = 1
         irrigation = IrrigationManagement(irrigation_method=SOIL_MOISTURE_METHOD, SMT=[100]*4)
         
@@ -91,7 +91,7 @@ class TestAquacropWrapper(unittest.TestCase):
         
 
         # final_statistics = self._model_os.get_water_storage_chart(multiples_plots_joined=True, show_chart=True, save_chart=False, save_path=None)
-        print("done")
+        print("done") """
 
 
 

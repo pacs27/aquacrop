@@ -239,7 +239,10 @@ images_between_15_16 = images_between_15_16[(images_between_15_16["date"] > date
 # The canopy is not stable as a factor like the wind and the shadows, so we need to smooth the data
 images_between_15_16['canopyCover'] = images_between_15_16['canopyCover'].rolling(5).mean()
 
-        
+# DELETE TWO DATES DATE ARE STRANGES (2023-03-30 and 2023-03-31)
+# images_between_15_16 = images_between_15_16[(images_between_15_16["day-month-year"] != "30-03-2023")]
+# images_between_15_16 = images_between_15_16[(images_between_15_16["day-month-year"] != "31-03-2023")]
+
     
     
 
