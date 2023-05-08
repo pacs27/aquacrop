@@ -6,7 +6,7 @@ import sys
 cc = CC("solution_cc_development")
 
 
-@cc.export("cc_development", "f8(f8,f8,f8,f8,f8,unicode_type,f8)")
+@cc.export("cc_development", "f8(f8,f8,f8,f8,f8,unicode_type,optional(f8))")
 def cc_development(
     CCo: float,
     CCx: float,
@@ -14,7 +14,7 @@ def cc_development(
     CDC: float,
     dt: float,
     Mode: str,
-    CCx0: float = None,
+    CCx0: float,
     ) -> float:
 
     """

@@ -183,7 +183,8 @@ def harvest_index(
 
                 # Determine adjustments for post-anthesis water stress
                 if HIt > 0:
-                    (NewCond.s_cor1,
+                    (NewCond.is_stomatal_closed,
+                        NewCond.s_cor1,
                     NewCond.s_cor2,
                     NewCond.fpost_upp,
                     NewCond.fpost_dwn,

@@ -90,6 +90,9 @@ class InitialCondition:
     """
 
     def __init__(self, num_comp):
+        # cameras
+        self.is_stomatal_closed = False
+        self.camera_canopy_cover = None
         # counters
         self.age_days = 0
         self.age_days_ns = 0

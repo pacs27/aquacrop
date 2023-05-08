@@ -525,6 +525,7 @@ def solution_single_time_step(
         NewCond.harvest_index,
         NewCond.harvest_index_adj,
         NewCond.yield_,
+        NewCond.is_stomatal_closed
     ]
 
     # Final output (if at end of growing season)

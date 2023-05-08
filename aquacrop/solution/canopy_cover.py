@@ -325,7 +325,8 @@ def canopy_cover(
                 # Crop has died
                 NewCond.canopy_cover = 0
                 NewCond.crop_dead = True
-
+        if InitCond.camera_canopy_cover != None:
+            NewCond.canopy_cover = InitCond.camera_canopy_cover
         ## Canopy senescence due to water stress (actual) ##
         if tCCadj >= Crop.Emergence:
             if (tCCadj < Crop.Senescence) or (InitCond_tEarlySen > 0):
@@ -446,6 +447,8 @@ def canopy_cover(
                 if NewCond.canopy_cover > InitCond_CCxW:
                     NewCond.ccx_w = NewCond.canopy_cover
 
+        if InitCond.camera_canopy_cover != None:
+            NewCond.canopy_cover = InitCond.camera_canopy_cover
         ## Calculate canopy size adjusted for micro-advective effects ##
         # Check to ensure potential canopy_cover is not slightly lower than actual
         if NewCond.canopy_cover_ns < NewCond.canopy_cover:

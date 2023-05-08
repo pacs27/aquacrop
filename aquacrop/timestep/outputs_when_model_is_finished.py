@@ -92,6 +92,7 @@ def outputs_when_model_is_finished(
                 "harvest_index",
                 "harvest_index_adj",
                 "yield_",
+                "is_stomatal_closed"
             ],
         )
 

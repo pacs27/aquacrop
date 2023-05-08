@@ -105,11 +105,15 @@ def HIadj_post_anthesis(
         and (NewCond_CC > 0.001)
         and (Crop.b_HI > 0)
     ):
+        
         # print(Ksw.sto)
+        NewCond_IS_STOMATAL_CLOSURE = True
         dCor = np.power(Ksw.sto, 0.1) * (1 - (1 - Ksw.sto) / Crop.b_HI)
         NewCond_sCor2 = InitCond_sCor2 + (dCor / tmax2)
         DayCor = dap - 1 - Crop.HIstartCD
         NewCond_fpost_dwn = (tmax2 / DayCor) * NewCond_sCor2
+    else:
+        NewCond_IS_STOMATAL_CLOSURE = False
 
     # Determine total multiplier
     if (tmax1 == 0) and (tmax2 == 0):
@@ -129,7 +133,7 @@ def HIadj_post_anthesis(
                     ((tmax2 * NewCond_fpost_dwn) + (tmax1 - tmax2)) / tmax1
                 )
 
-    return (
+    return (NewCond_IS_STOMATAL_CLOSURE,
             NewCond_sCor1,
             NewCond_sCor2,
             NewCond_fpost_upp,
