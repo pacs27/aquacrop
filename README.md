@@ -46,3 +46,10 @@ Now we have the algorithm that is working (However I dont have the part that upd
 
 **FUTURE WORK:**
 it could be a better option to access the weather station that is in the field. Maybe in the future. I don have time now
+
+**MARGA AUXI RECOMENDATIONS**
+* QUE SE VEA EN LA APP EL CIERRE ESTOMATICO
+* INICIO SIMULACION ANTES DE LA LLUVIA
+* TEXTURA DEL SUELO
+* DENSIDAD DE SIEMBRA?
+* ES MEJOR USAR GDD

@@ -99,7 +99,9 @@ class AquacropVariablesController:
         
         if(init_cond.canopy_cover > 0):
             if real_canopy_cover and real_canopy_cover > 0:
-                init_cond.canopy_cover = real_canopy_cover
+                init_cond.camera_canopy_cover = real_canopy_cover
+            else:
+                init_cond.camera_canopy_cover = None
         
         # TODO: DELETE!!!!!!!!!!!
         # date_now = datetime.datetime(2023, 4, 1)
